@@ -3,17 +3,16 @@ package com.caston.send_mail.controller;
 
 import com.caston.send_mail.entity.SendMail;
 import com.caston.send_mail.service.SendMailService;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
 import java.util.Date;
 
@@ -34,7 +33,7 @@ public class SendMailController {
     private SendMailService sendMailService;
 
     @PostMapping("/sendMail")
-    public String sendMail(@RequestParam String to,@RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) MultipartFile file) throws Exception {
+    public String sendMail(@RequestParam String to, @RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) MultipartFile file) throws Exception {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setFrom(mailSender.getUsername());
@@ -42,11 +41,11 @@ public class SendMailController {
         helper.setSubject(subject);
         helper.setText(text, isHtml);
         helper.setSentDate(new Date());
-        if (StringUtils.isNoneBlank(cc)){
+        if (StringUtils.isNoneBlank(cc)) {
             helper.setCc(cc.split(","));
         }
         if (file != null && !file.isEmpty()) {
-            helper.addAttachment(file.getOriginalFilename(), new InputStreamResource(file.getInputStream()));
+            helper.addAttachment(file.getOriginalFilename(), new ByteArrayResource(IOUtils.toByteArray(file.getInputStream())));
         }
         mailSender.send(mimeMessage);
         return "success";
