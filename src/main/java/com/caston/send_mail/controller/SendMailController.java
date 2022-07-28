@@ -3,6 +3,7 @@ package com.caston.send_mail.controller;
 
 import com.caston.send_mail.entity.SendMail;
 import com.caston.send_mail.service.SendMailService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.mail.SimpleMailMessage;
@@ -33,7 +34,7 @@ public class SendMailController {
     private SendMailService sendMailService;
 
     @PostMapping("/sendMail")
-    public String sendMail(@RequestParam String to, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) MultipartFile file) throws Exception {
+    public String sendMail(@RequestParam String to,@RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) MultipartFile file) throws Exception {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setFrom(mailSender.getUsername());
@@ -41,6 +42,9 @@ public class SendMailController {
         helper.setSubject(subject);
         helper.setText(text, isHtml);
         helper.setSentDate(new Date());
+        if (StringUtils.isNoneBlank(cc)){
+            helper.setCc(cc.split(","));
+        }
         if (file != null && !file.isEmpty()) {
             helper.addAttachment(file.getOriginalFilename(), new InputStreamResource(file.getInputStream()));
         }

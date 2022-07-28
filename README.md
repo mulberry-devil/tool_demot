@@ -5,6 +5,7 @@
 - 运行后访问`http://localhost:8080/swagger-ui/`
 - 发送邮件字段
     - `to`：收件人，多个时用逗号隔开
+    - `cc`：抄送人，多个时用逗号隔开，可不写
     - `subject`：主题
     - `text`：内容，可为html格式
     - `isHtml`：内容为html时选择true
