@@ -49,7 +49,7 @@ public class SendMailController {
     }
 
     @PostMapping("/updateMail")
-    public String updateMail(String host, String username, String password, Integer port) {
+    public String updateMail(@RequestParam String host, @RequestParam String username, @RequestParam String password, Integer port) {
         sendMailService.lambdaUpdate().eq(SendMail::getStatus, 1).set(SendMail::getStatus, 0).update();
         SendMail sendMail;
         sendMail = sendMailService.lambdaQuery()
