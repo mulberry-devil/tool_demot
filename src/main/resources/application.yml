@@ -1,0 +1,27 @@
+spring:
+  #数据库的连接信息：5项，这里我是mysql8的连接信息
+  datasource:
+    druid:
+      name: base_spring_boot
+      url: jdbc:mysql://localhost:3306/tooldb?serverTimezone=UTC&characterEncoding=utf-8
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      username: root
+      password: macroview
+      filters: stat # 监控统计
+      initial-size: 2 # 初始化连接
+      max-idle: 10 # 最大空闲连接数
+      min-idle: 1 # 最小空闲连接数
+      max-active: 20 # 最大活动连接
+      max-wait: 60000 # 获取连接超时的等待时间
+      time-between-eviction-runs-millis: 60000 # 间隔多久进行一次检测，检测需要关闭的空闲连接
+      min-evictable-idle-time-millis: 300000 # 一个连接在池中最小生产的空间
+      validation-query: SELECT 'x' # 验证连接有效与否的SQL
+      test-while-idle: true # 指明连接是否被空闲连接回收器（如果有）进行检验，如果检验失败，则连接将被从池中去除
+      test-on-borrow: false # 借出连接时不要测试，否则影响性能
+
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印执行的sql语句
+  mapper-locations:
+    - classpath:com/caston/*/mapper/xml/*.xml # 指定xml所在位置
