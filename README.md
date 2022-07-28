@@ -9,4 +9,4 @@
     - `subject`：主题
     - `text`：内容，可为html格式
     - `isHtml`：内容为html时选择true
-    - `file`：附件，可不选
+    - `file`：多附件，可不选

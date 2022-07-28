@@ -33,7 +33,7 @@ public class SendMailController {
     private SendMailService sendMailService;
 
     @PostMapping("/sendMail")
-    public String sendMail(@RequestParam String to, @RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) MultipartFile file) throws Exception {
+    public String sendMail(@RequestParam String to, @RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) MultipartFile[] files) throws Exception {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setFrom(mailSender.getUsername());
@@ -44,8 +44,13 @@ public class SendMailController {
         if (StringUtils.isNoneBlank(cc)) {
             helper.setCc(cc.split(","));
         }
-        if (file != null && !file.isEmpty()) {
-            helper.addAttachment(file.getOriginalFilename(), new ByteArrayResource(IOUtils.toByteArray(file.getInputStream())));
+        // if (file != null && !file.isEmpty()) {
+        //     helper.addAttachment(file.getOriginalFilename(), new ByteArrayResource(IOUtils.toByteArray(file.getInputStream())));
+        // }
+        if (files != null&&files.length!=0) {
+            for (MultipartFile file : files) {
+                helper.addAttachment(file.getOriginalFilename(),file);
+            }
         }
         mailSender.send(mimeMessage);
         return "success";
