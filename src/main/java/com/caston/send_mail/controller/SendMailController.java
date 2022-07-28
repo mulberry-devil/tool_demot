@@ -3,10 +3,8 @@ package com.caston.send_mail.controller;
 
 import com.caston.send_mail.entity.SendMail;
 import com.caston.send_mail.service.SendMailService;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
