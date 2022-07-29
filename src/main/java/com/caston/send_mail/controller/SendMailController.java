@@ -42,9 +42,6 @@ public class SendMailController {
         if (StringUtils.isNoneBlank(cc)) {
             helper.setCc(cc.split(","));
         }
-        // if (file != null && !file.isEmpty()) {
-        //     helper.addAttachment(file.getOriginalFilename(), new ByteArrayResource(IOUtils.toByteArray(file.getInputStream())));
-        // }
         if (files != null&&files.length!=0) {
             for (MultipartFile file : files) {
                 helper.addAttachment(file.getOriginalFilename(),file);
