@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
   #数据库的连接信息：5项，这里我是mysql8的连接信息
   datasource:
     druid:
