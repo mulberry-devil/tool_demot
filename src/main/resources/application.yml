@@ -29,3 +29,6 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印执行的sql语句
   mapper-locations:
     - classpath:com/caston/*/mapper/xml/*.xml # 指定xml所在位置
+
+server:
+  port: 8081
