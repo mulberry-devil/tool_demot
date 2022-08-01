@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.generator.config.GlobalConfig;
 import com.baomidou.mybatisplus.generator.config.PackageConfig;
 import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
+import org.apache.shiro.crypto.hash.Md5Hash;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -98,5 +99,18 @@ class ToolDemoApplicationTests {
             }
 
         }
+    }
+
+    @Test
+    void test2() {
+        String password = "567567";
+        Md5Hash md5Hash = new Md5Hash(password);
+        System.out.println(md5Hash.toHex());
+        // 使用加盐后的加密数据
+        Md5Hash md5Hash1 = new Md5Hash(password, "bjsxd");
+        System.out.println(md5Hash1.toHex());
+        // 使用迭代并加盐后的加密数据
+        Md5Hash md5Hash2 = new Md5Hash(password, "bjsxd", 2);
+        System.out.println(md5Hash2.toHex());
     }
 }
