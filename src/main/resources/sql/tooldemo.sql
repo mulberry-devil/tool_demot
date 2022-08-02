@@ -67,9 +67,8 @@ CREATE TABLE IF NOT EXISTS `account` (
 -- 正在导出表  tooldb.account 的数据：~3 rows (大约)
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
 INSERT INTO `account` (`id`, `username`, `password`, `perms`, `role`) VALUES
-(1, 'cs', '123123', NULL, NULL),
-(2, 'qs', '234234', 'manager', NULL),
-(3, 'bs', '567567', 'manager', 'admin');
+(1, 'cs', 'c9f7cfcc27e441399c42b57c220fc3ec', 'manager', 'manager:all'),
+(2, 'zb', 'c9f7cfcc27e441399c42b57c220fc3ec', 'user', 'user:select,user:send');
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
