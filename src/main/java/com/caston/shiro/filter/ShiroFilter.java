@@ -2,12 +2,9 @@ package com.caston.shiro.filter;
 
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authz.AuthorizationFilter;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import java.util.Arrays;
 
 public class ShiroFilter extends AuthorizationFilter {
     @Override
