@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author caston
@@ -23,7 +23,7 @@ public class SendMailServiceImpl extends ServiceImpl<SendMailMapper, SendMail> i
     private SendMailMapper sendMailMapper;
 
     @Override
-    public void updateMail(SendMail sendMail,JavaMailSenderImpl javaMailSender) {
+    public void updateMail(SendMail sendMail, JavaMailSenderImpl javaMailSender) {
         sendMailMapper.insert(sendMail);
         javaMailSender.setHost(sendMail.getHost());
         javaMailSender.setPort(sendMail.getPort());

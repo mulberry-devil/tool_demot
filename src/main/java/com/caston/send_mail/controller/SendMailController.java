@@ -4,6 +4,9 @@ package com.caston.send_mail.controller;
 import com.caston.send_mail.entity.SendMail;
 import com.caston.send_mail.service.SendMailService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -24,6 +27,7 @@ import java.util.Date;
  */
 @RestController
 @RequestMapping("/sendMail")
+@RequiresRoles(value = {"manager", "user"}, logical = Logical.OR)
 public class SendMailController {
     @Autowired
     private JavaMailSenderImpl mailSender;
@@ -31,6 +35,7 @@ public class SendMailController {
     private SendMailService sendMailService;
 
     @PostMapping("/sendMail")
+    @RequiresPermissions(value = {"manager:all", "user:send"}, logical = Logical.OR)
     public String sendMail(@RequestParam String to, @RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) MultipartFile[] files) throws Exception {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
@@ -42,9 +47,9 @@ public class SendMailController {
         if (StringUtils.isNoneBlank(cc)) {
             helper.setCc(cc.split(","));
         }
-        if (files != null&&files.length!=0) {
+        if (files != null && files.length != 0) {
             for (MultipartFile file : files) {
-                helper.addAttachment(file.getOriginalFilename(),file);
+                helper.addAttachment(file.getOriginalFilename(), file);
             }
         }
         mailSender.send(mimeMessage);
@@ -52,6 +57,7 @@ public class SendMailController {
     }
 
     @PostMapping("/updateMail")
+    @RequiresPermissions(value = {"manager:all", "user:update"}, logical = Logical.OR)
     public String updateMail(@RequestParam String host, @RequestParam String username, @RequestParam String password, Integer port) {
         sendMailService.lambdaUpdate().eq(SendMail::getStatus, 1).set(SendMail::getStatus, 0).update();
         SendMail sendMail;

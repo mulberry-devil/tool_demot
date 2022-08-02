@@ -4,10 +4,13 @@ package com.caston.shiro.controller;
 import com.caston.shiro.entity.Account;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.apache.shiro.subject.Subject;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/account")
 public class AccountController {
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public String login(String username, String password) {
         Subject subject = SecurityUtils.getSubject();
         UsernamePasswordToken token = new UsernamePasswordToken(username, password);
@@ -39,13 +42,18 @@ public class AccountController {
         return "登录成功";
     }
 
-    @RequiresPermissions({"manager"})
+    @GetMapping("reLogin")
+    public String reLogin() {
+        return "请登录";
+    }
+
+    @RequiresPermissions(value = {"manager:all", "user:select"}, logical = Logical.OR)
     @GetMapping("/perms")
     public String perms() {
         return "perms";
     }
 
-    @RequiresRoles({"admin"})
+    @RequiresRoles(value = "user")
     @GetMapping("/roles")
     public String roles() {
         return "roles";
@@ -57,9 +65,14 @@ public class AccountController {
     }
 
     @GetMapping("/logout")
-    public String logout(){
+    public String logout() {
         Subject subject = SecurityUtils.getSubject();
         subject.logout();
         return "退出成功";
+    }
+
+    @GetMapping("/test")
+    public String test() {
+        return "test";
     }
 }

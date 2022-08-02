@@ -12,8 +12,10 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AccountRealm extends AuthorizingRealm {
     @Autowired
@@ -21,6 +23,7 @@ public class AccountRealm extends AuthorizingRealm {
 
     /**
      * 授权
+     *
      * @param principalCollection
      * @return
      */
@@ -30,17 +33,20 @@ public class AccountRealm extends AuthorizingRealm {
         Subject subject = SecurityUtils.getSubject();
         Account account = (Account) subject.getPrincipal();
 
+        String[] roles = account.getRole().split(",");
         // 设置角色
-        Set<String> roles = new HashSet<>();
-        roles.add(account.getRole());
-        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo(roles);
+        Set<String> rolesSet = Arrays.stream(roles).collect(Collectors.toSet());
+        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo(rolesSet);
+        String[] perms = account.getPerms().split(",");
+        Set<String> permsSet = Arrays.stream(perms).collect(Collectors.toSet());
         // 设置权限
-        info.addStringPermission(account.getPerms());
+        info.addStringPermissions(permsSet);
         return info;
     }
 
     /**
      * 认证
+     *
      * @param authenticationToken
      * @return
      * @throws AuthenticationException
@@ -49,8 +55,8 @@ public class AccountRealm extends AuthorizingRealm {
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
         UsernamePasswordToken token = (UsernamePasswordToken) authenticationToken;
         Account account = accountService.lambdaQuery().eq(Account::getUsername, token.getUsername()).one();
-        if (account!=null){
-            return new SimpleAuthenticationInfo(account,account.getPassword(), ByteSource.Util.bytes("bjsxd"),getName());
+        if (account != null) {
+            return new SimpleAuthenticationInfo(account, account.getPassword(), ByteSource.Util.bytes("bjsxd"), getName());
         }
         return null;
     }

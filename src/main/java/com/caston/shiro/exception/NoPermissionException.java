@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class NoPermissionException {
 
     @ExceptionHandler(UnauthorizedException.class)
-    public String unauthorizedException(){
+    public String unauthorizedException() {
         return "无权限";
     }
 
     @ExceptionHandler(AuthorizationException.class)
-    public String authorizationException(){
+    public String authorizationException() {
         return "权限认证失败";
     }
 }

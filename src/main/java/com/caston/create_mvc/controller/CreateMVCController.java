@@ -9,22 +9,24 @@ import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.caston.create_mvc.entity.SQLEntity;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
 @RestController
 @RequestMapping("/createMVC")
+@RequiresRoles(value = {"manager", "user"}, logical = Logical.OR)
 public class CreateMVCController {
 
     @Resource
     private SQLEntity sqlEntity;
 
     @PostMapping("/")
+    @RequiresPermissions(value = {"manager:all", "user:develop"}, logical = Logical.OR)
     public String create(@RequestParam(required = false) String ipPort,
                          @RequestParam(required = false) String DBName,
                          @RequestParam(required = false) String username,
@@ -77,6 +79,6 @@ public class CreateMVCController {
         mpg.setStrategy(strategy);
         // 6、执行
         mpg.execute();
-        return "创建成功";
+        return projectPath;
     }
 }
