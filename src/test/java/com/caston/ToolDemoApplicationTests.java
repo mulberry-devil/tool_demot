@@ -1,5 +1,6 @@
 package com.caston;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.annotation.DbType;
@@ -11,7 +12,13 @@ import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import org.apache.shiro.crypto.hash.Md5Hash;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -111,5 +118,27 @@ class ToolDemoApplicationTests {
         // 使用迭代并加盐后的加密数据
         Md5Hash md5Hash2 = new Md5Hash(password, "bjsxd", 2);
         System.out.println(md5Hash2.toHex());
+    }
+
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Test
+    void test3(){
+        // HttpHeaders headers = new HttpHeaders();
+        // headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
+        // HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
+        //
+        // String response = restTemplate.exchange("https://tenapi.cn/resou/", HttpMethod.GET, entity, String.class).getBody();
+        // JSONObject jsonObject = JSONObject.parseObject(response);
+        // JSONArray jsonArray = jsonObject.getJSONArray("list");
+        // jsonArray.forEach(i->{
+        //     System.out.println();
+        //
+        // });
+        // Object weibo = redisTemplate.opsForValue().get("weibo");
+        // System.out.println(111);
     }
 }

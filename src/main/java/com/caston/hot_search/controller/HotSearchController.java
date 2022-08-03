@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,32 +30,21 @@ import java.util.Map;
 public class HotSearchController {
 
     @Autowired
-    private RestTemplate restTemplate;
+    private RedisTemplate redisTemplate;
 
     @GetMapping("/")
-    public Map<String, JSONArray> hotSearch() {
-        HashMap<String, JSONArray> map = new HashMap<>();
-        JSONArray weibo = get("https://tenapi.cn/resou/");
-        JSONArray zhihu = get("https://tenapi.cn/zhihuresou/");
-        JSONArray douyin = get("https://tenapi.cn/douyinresou/");
-        JSONArray blibli = get("https://tenapi.cn/bilihot/");
-        JSONArray baidu = get("https://tenapi.cn/baiduhot/");
+    public Map<String, Object> hotSearch() {
+        HashMap<String, Object> map = new HashMap<>();
+        Object weibo = redisTemplate.opsForValue().get("weibo");
+        Object zhihu = redisTemplate.opsForValue().get("zhihu");
+        Object douyin = redisTemplate.opsForValue().get("douyin");
+        Object blibli = redisTemplate.opsForValue().get("blibli");
+        Object baidu = redisTemplate.opsForValue().get("baidu");
         map.put("微博",weibo);
         map.put("知乎",zhihu);
         map.put("抖音",douyin);
         map.put("B站",blibli);
         map.put("百度",baidu);
         return map;
-    }
-
-    public JSONArray get(String url){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
-        HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-
-        String response = restTemplate.exchange(url, HttpMethod.GET,entity,String.class).getBody();
-        JSONObject jsonObject = JSONObject.parseObject(response);
-        JSONArray jsonArray = jsonObject.getJSONArray("list");
-        return  jsonArray;
     }
 }

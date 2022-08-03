@@ -1,4 +1,11 @@
 spring:
+  redis:
+    host: 172.23.11.200
+    lettuce:
+      pool:
+        max-idle: 10
+        min-idle: 2
+    timeout: 6000
   servlet:
     multipart:
       max-file-size: 10MB
@@ -32,3 +39,19 @@ mybatis-plus:
 
 server:
   port: 8081
+
+xxl:
+  job:
+    admin:
+      addresses: http://127.0.0.1:8080/xxl-job-admin
+    accessToken: default_token
+    executor:
+      appname: xxl-job-executor-hotsearch
+      address:
+      ip:
+      port: 9999
+      logpath: E:\eclipse-workspace\tool_demo\log
+      logretentiondays: 30
+
+logging:
+  config: classpath:logback.xml
