@@ -26,8 +26,12 @@ public class HotSearchServiceImpl implements HotSearchService {
 
     @Override
     public void addHotSearchInit(String key, String url) {
-        JSONArray hotSearch = get(url);
-        redisTemplate.opsForValue().set(key, hotSearch);
+        try {
+            JSONArray hotSearch = get(url);
+            redisTemplate.opsForValue().set(key, hotSearch);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public JSONArray get(String url) {

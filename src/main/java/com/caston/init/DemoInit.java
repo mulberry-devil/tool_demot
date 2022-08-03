@@ -24,6 +24,7 @@ public class DemoInit {
 
     @PostConstruct
     public void init() {
+        System.out.println("初始化redis中数据");
         try {
             hotSearchService.addHotSearchInit("weibo", "https://tenapi.cn/resou/");
             hotSearchService.addHotSearchInit("zhihu", "https://tenapi.cn/zhihuresou/");

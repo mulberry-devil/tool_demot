@@ -41,6 +41,7 @@ public class HotSearchXxlJob {
     @XxlJob("hotSearchJobHandler")
     public void demoJobHandler() throws Exception {
         XxlJobHelper.log("XXL-JOB, start update redis.");
+        System.out.println("开始更新redis中数据");
         String jobParam = XxlJobHelper.getJobParam();
         JSONObject jsonObject = JSONObject.parseObject(jobParam);
         jsonObject.forEach((i, j) -> {
