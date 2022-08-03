@@ -20,7 +20,6 @@ spring:
       password: macroview
       filters: stat # 监控统计
       initial-size: 2 # 初始化连接
-      max-idle: 10 # 最大空闲连接数
       min-idle: 1 # 最小空闲连接数
       max-active: 20 # 最大活动连接
       max-wait: 60000 # 获取连接超时的等待时间
