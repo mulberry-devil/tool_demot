@@ -34,22 +34,16 @@ public class MailConsumer {
         if (StringUtils.isNoneBlank(mailVo.getCc())) {
             helper.setCc(mailVo.getCc().split(","));
         }
-        List<Map> attachList= JSONObject.parseArray(mailVo.getFilesStr(),Map.class);
-        if(attachList!=null && attachList.size()>0){
-            String fileid = null;
-            for(Map m:attachList){
-                byte[] fileByte= Base64.decodeBase64(m.get("fileByte")==null?"":m.get("fileByte").toString());
+        List<Map> fileList = JSONObject.parseArray(mailVo.getFilesStr(), Map.class);
+        if (fileList != null && fileList.size() > 0) {
+            for (Map m : fileList) {
+                // 将string转为byte数组
+                byte[] fileByte = Base64.decodeBase64(m.get("fileByte") == null ? "" : m.get("fileByte").toString());
                 InputStream inputStream = new ByteArrayInputStream(fileByte);
-                String fileName=m.get("fileName").toString();
-                helper.addAttachment(fileName,new ByteArrayResource(IOUtils.toByteArray(inputStream)));
+                String fileName = m.get("fileName").toString();
+                helper.addAttachment(fileName, new ByteArrayResource(IOUtils.toByteArray(inputStream)));
             }
         }
-        // List<MultipartFile> files = mailVo.getFiles();
-        // if (files != null && files.size() != 0) {
-        //     for (MultipartFile file : files) {
-        //         helper.addAttachment(file.getOriginalFilename(), file);
-        //     }
-        // }
         mailSender.send(mimeMessage);
         return "发送成功";
     }

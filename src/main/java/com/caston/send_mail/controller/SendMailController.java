@@ -40,33 +40,17 @@ public class SendMailController {
     @PostMapping("/sendMail")
     @RequiresPermissions(value = {"manager:all", "user:send"}, logical = Logical.OR)
     public String sendMail(@RequestParam String to, @RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) List<MultipartFile> files) throws Exception {
-        // MimeMessage mimeMessage = mailSender.createMimeMessage();
-        // MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-        // helper.setFrom(mailSender.getUsername());
-        // helper.setTo(to.split(","));
-        // helper.setSubject(subject);
-        // helper.setText(text, isHtml);
-        // helper.setSentDate(new Date());
-        // if (StringUtils.isNoneBlank(cc)) {
-        //     helper.setCc(cc.split(","));
-        // }
-        // if (files != null && files.length != 0) {
-        //     for (MultipartFile file : files) {
-        //         helper.addAttachment(file.getOriginalFilename(), file);
-        //     }
-        // }
-        // mailSender.send(mimeMessage);
-        List<Map<String,Object>>list =new ArrayList<Map<String,Object>>();
-        for(MultipartFile f:files){
-            Map<String,Object>map=new HashMap<String,Object>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        for (MultipartFile f : files) {
+            Map<String, Object> map = new HashMap<String, Object>();
             String filename = f.getOriginalFilename();
-            byte[] bytes = f.getBytes();
+            byte[] fileByte = f.getBytes();
             map.put("fileName", filename);
-            map.put("fileByte", Base64.encodeBase64String(bytes));
-            list.add(list.size(),map);
+            map.put("fileByte", Base64.encodeBase64String(fileByte));
+            list.add(list.size(), map);
         }
-        String jsonfiles = JSONObject.toJSONString(list);
-        MailVo mailVo = new MailVo(to, cc, subject, text, isHtml, jsonfiles);
+        String fileMapStr = JSONObject.toJSONString(list);
+        MailVo mailVo = new MailVo(to, cc, subject, text, isHtml, fileMapStr);
         mailProduce.sendQue(mailVo);
         return "success";
     }
