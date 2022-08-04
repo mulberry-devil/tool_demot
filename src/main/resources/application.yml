@@ -1,4 +1,7 @@
 spring:
+  rabbitmq:
+    addresses: 172.23.11.200
+    port: 5672
   redis:
     host: 172.23.11.200
     lettuce:
@@ -48,7 +51,7 @@ xxl:
       appname: xxl-job-executor-hotsearch
       address:
       ip:
-      port: 9999
+      port: 9989
       logpath: E:\eclipse-workspace\tool_demo\log
       logretentiondays: 30
 

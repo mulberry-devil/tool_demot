@@ -24,15 +24,15 @@ public class DemoInit {
 
     @PostConstruct
     public void init() {
-        System.out.println("初始化redis中数据");
-        try {
-            hotSearchService.addHotSearchInit("weibo", "https://tenapi.cn/resou/");
-            hotSearchService.addHotSearchInit("zhihu", "https://tenapi.cn/zhihuresou/");
-            hotSearchService.addHotSearchInit("douyin", "https://tenapi.cn/douyinresou/");
-            hotSearchService.addHotSearchInit("blibli", "https://tenapi.cn/bilihot/");
-            hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // System.out.println("初始化redis中数据");
+        // try {
+        //     hotSearchService.addHotSearchInit("weibo", "https://tenapi.cn/resou/");
+        //     hotSearchService.addHotSearchInit("zhihu", "https://tenapi.cn/zhihuresou/");
+        //     hotSearchService.addHotSearchInit("douyin", "https://tenapi.cn/douyinresou/");
+        //     hotSearchService.addHotSearchInit("blibli", "https://tenapi.cn/bilihot/");
+        //     hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
     }
 }
