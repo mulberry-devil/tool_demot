@@ -35,7 +35,7 @@ public class MailProduce {
             rabbitTemplate.setRoutingKey(environment.getProperty("mail.routing.key.name"));
             Message message = MessageBuilder.withBody(objectMapper.writeValueAsBytes(mailVo)).setDeliveryMode(MessageDeliveryMode.PERSISTENT).build();
             message.getMessageProperties().setHeader(AbstractJavaTypeMapper.DEFAULT_CONTENT_CLASSID_FIELD_NAME, MessageProperties.CONTENT_TYPE_JSON);
-            rabbitTemplate.convertAndSend(message);
+            String msg = (String) rabbitTemplate.convertSendAndReceive(message);
             log.info("消息发送成功...");
         } catch (Exception e) {
             log.error("消息发送异常：{}", e);

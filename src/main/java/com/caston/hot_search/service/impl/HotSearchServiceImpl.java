@@ -33,10 +33,12 @@ public class HotSearchServiceImpl implements HotSearchService {
     @Override
     public void addHotSearch(String key, String url) {
         try {
+            log.info("开始更新{}数据...", key);
             JSONArray hotSearch = get(url);
             redisTemplate.opsForValue().setIfPresent(key, hotSearch);
+            log.info("{}数据更新成功", key);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("{}数据更新异常：{}", key, e);
         }
     }
 
@@ -48,7 +50,6 @@ public class HotSearchServiceImpl implements HotSearchService {
             redisTemplate.opsForValue().set(key, hotSearch);
             log.info("{}数据初始化成功...", key);
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("初始化{}数据异常：{}", key, e);
         }
     }

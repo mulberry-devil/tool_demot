@@ -35,7 +35,6 @@ public class DemoInit {
             hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
             log.info("热点数据初始化结束......");
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("初始化数据发生异常：{}", e);
         }
     }

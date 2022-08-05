@@ -57,7 +57,7 @@ class ToolDemoApplicationTests {
         mpg.setPackageInfo(pc);
 // 5、策略配置
         StrategyConfig strategy = new StrategyConfig();
-        // strategy.setInclude(new String[]{"test"});//指定表
+        strategy.setInclude(new String[]{"mail_vo"});//指定表
         strategy.setNaming(NamingStrategy.underline_to_camel);//数据库表映射到实体的命名策略
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);//数据库表字段映射到实体的命名策略
         strategy.setEntityLombokModel(true); // lombok

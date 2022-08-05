@@ -12,6 +12,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class RabbitMQConfig {
@@ -58,16 +60,37 @@ public class RabbitMQConfig {
         });
         return rabbitTemplate;
     }
+
     @Bean
     public Queue mailQueue() {
-        return new Queue(environment.getProperty("mail.queue.name"), true);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", environment.getProperty("mail.dead.exchange.name"));
+        args.put("x-dead-letter-routing-key", environment.getProperty("mail.dead.routing.key.name"));
+        return new Queue(environment.getProperty("mail.queue.name"), true, false, false, args);
     }
+
     @Bean
     public DirectExchange mailExchange() {
         return new DirectExchange(environment.getProperty("mail.exchange.name"), true, false);
     }
+
     @Bean
     public Binding mailBinding() {
         return BindingBuilder.bind(mailQueue()).to(mailExchange()).with(environment.getProperty("mail.routing.key.name"));
+    }
+
+    @Bean
+    public Queue mailDeadQueue() {
+        return new Queue(environment.getProperty("mail.dead.queue.name"), true);
+    }
+
+    @Bean
+    public DirectExchange mailDeadExchange() {
+        return new DirectExchange(environment.getProperty("mail.dead.exchange.name"), true, false);
+    }
+
+    @Bean
+    public Binding mailDeadBinding() {
+        return BindingBuilder.bind(mailDeadQueue()).to(mailDeadExchange()).with(environment.getProperty("mail.dead.routing.key.name"));
     }
 }

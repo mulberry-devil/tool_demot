@@ -29,7 +29,7 @@ public class MailConsumer {
     @Autowired
     private JavaMailSenderImpl mailSender;
 
-    public String send(MailVo mailVo, Long tag, Channel channel) throws IOException {
+    public Boolean send(MailVo mailVo) throws IOException {
         try {
             log.info("开始进行邮件发送处理...");
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -54,13 +54,10 @@ public class MailConsumer {
             }
             mailSender.send(mimeMessage);
             log.info("邮件发送成功，请注意通知查收...");
-            log.info("开始向队列发送确认消息...");
-            channel.basicAck(tag, true);
+            return true;
         } catch (Exception e) {
             log.error("邮件发送失败：{}", e);
-            log.info("请尝试重试发送邮件");
-            channel.basicReject(tag,false);
+            return false;
         }
-        return "发送成功";
     }
 }

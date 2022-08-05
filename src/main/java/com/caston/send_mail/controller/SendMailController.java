@@ -61,9 +61,9 @@ public class SendMailController {
             list.add(list.size(), map);
         }
         String fileMapStr = JSONObject.toJSONString(list);
-        MailVo mailVo = new MailVo(to, cc, subject, text, isHtml, fileMapStr);
+        MailVo mailVo = new MailVo(to, cc, subject, text, isHtml, fileMapStr,null);
         mailProduce.sendQue(mailVo);
-        return "success";
+        return "请求发送邮件成功";
     }
 
     @PutMapping("/updateMail")
