@@ -6,12 +6,14 @@ import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
+
 @ConfigurationProperties("spring.datasource.druid")
 @Component
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SQLEntity {
+public class SQLEntity implements Serializable {
     private String url;
     private String username;
     private String password;

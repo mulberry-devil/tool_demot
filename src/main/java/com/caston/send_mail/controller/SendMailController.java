@@ -40,9 +40,20 @@ public class SendMailController {
     @PostMapping("/sendMail")
     @RequiresPermissions(value = {"manager:all", "user:send"}, logical = Logical.OR)
     public String sendMail(@RequestParam String to, @RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) List<MultipartFile> files) throws Exception {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        /*
+         * 邮件发送带附件配合队列--附件序列化思路
+         *
+         * 生产者：
+         * 将MultipartFile转为byte数组后编码为Base64封装进集合中
+         * 再将集合转化为String进行消息的传输
+         *
+         * 消费者：
+         * 将String转化为集合
+         * 将Base64解码为byte数组后转为InputStream
+         */
+        List<Map<String, Object>> list = new ArrayList<>();
         for (MultipartFile f : files) {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             String filename = f.getOriginalFilename();
             byte[] fileByte = f.getBytes();
             map.put("fileName", filename);

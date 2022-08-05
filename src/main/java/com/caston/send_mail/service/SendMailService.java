@@ -13,5 +13,11 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
  * @since 2022-07-28
  */
 public interface SendMailService extends IService<SendMail> {
+    /**
+     * 更新邮件配置
+     *
+     * @param sendMail
+     * @param mailSender
+     */
     public void updateMail(SendMail sendMail, JavaMailSenderImpl mailSender);
 }

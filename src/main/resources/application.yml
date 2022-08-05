@@ -2,6 +2,8 @@ spring:
   rabbitmq:
     addresses: 172.23.11.200
     port: 5672
+    username: qs
+    password: 123123
   redis:
     host: 172.23.11.200
     lettuce:
