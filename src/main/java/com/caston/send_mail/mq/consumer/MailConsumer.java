@@ -58,8 +58,8 @@ public class MailConsumer {
             channel.basicAck(tag, true);
         } catch (Exception e) {
             log.error("邮件发送失败：{}", e);
-            log.info("开始重试发送邮件");
-            channel.basicReject(tag,true);
+            log.info("请尝试重试发送邮件");
+            channel.basicReject(tag,false);
         }
         return "发送成功";
     }
