@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * <p>
@@ -23,17 +23,17 @@ import java.time.LocalDateTime;
 public class MailVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String to;
+    private String mailTo;
 
     private String cc;
 
     private String subject;
 
-    private String text;
+    private String mailText;
 
     private Boolean isHtml;
 
     private String filesStr;
 
-    private LocalDateTime date;
+    private Date mailDate;
 }

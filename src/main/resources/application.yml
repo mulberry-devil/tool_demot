@@ -19,7 +19,7 @@ spring:
   datasource:
     druid:
       name: base_spring_boot
-      url: jdbc:mysql://localhost:3306/tooldb?serverTimezone=UTC&characterEncoding=utf-8
+      url: jdbc:mysql://localhost:3306/tooldb?serverTimezone=Asia/Shanghai&characterEncoding=utf-8
       driver-class-name: com.mysql.cj.jdbc.Driver
       username: root
       password: macroview

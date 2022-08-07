@@ -1,22 +1,28 @@
 package com.caston.xxljob.jobhandler;
 
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.caston.hot_search.service.HotSearchService;
+import com.caston.send_mail.entity.MailVo;
+import com.caston.send_mail.mq.produce.MailProduce;
+import com.caston.send_mail.service.MailVoService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,20 +38,61 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class HotSearchXxlJob {
+    private static final Logger log = LoggerFactory.getLogger(HotSearchXxlJob.class);
+
     @Autowired
     private HotSearchService hotSearchService;
+    @Autowired
+    private MailVoService mailVoService;
+    @Autowired
+    private MailProduce mailProduce;
+    @Value("${mail.aliyun.endpoint}")
+    private String endpoint;
+    @Value("${mail.aliyun.accessKeyId}")
+    private String accessKeyId;
+    @Value("${mail.aliyun.accessKeySecret}")
+    private String accessKeySecret;
+    @Value("${mail.aliyun.bucketName}")
+    private String bucketName;
 
     /**
      * 1、简单任务示例（Bean模式）
      */
     @XxlJob("hotSearchJobHandler")
-    public void demoJobHandler() throws Exception {
+    public void hotSearchJobHandler() throws Exception {
         XxlJobHelper.log("XXL-JOB, start update redis.");
-        System.out.println("开始更新redis中数据");
+        log.info("开始更新redis中数据");
         String jobParam = XxlJobHelper.getJobParam();
         JSONObject jsonObject = JSONObject.parseObject(jobParam);
         jsonObject.forEach((i, j) -> {
             hotSearchService.addHotSearch(i, (String) j);
         });
+    }
+
+    @XxlJob("dealDeadMailJobHandler")
+    public void dealDeadMailJobHandler() throws Exception {
+        log.info("开始执行邮件发送失败重试任务");
+        OSS oss = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        List<MailVo> mailVos = mailVoService.list();
+        for (MailVo mailVo : mailVos) {
+            List<Map<String, Object>> list = new ArrayList<>();
+            String filesStr = mailVo.getFilesStr();
+            String[] filenames = filesStr.split(",");
+            for (String filename : filenames) {
+                Map<String, Object> map = new HashMap<>();
+                InputStream inputStream = oss.getObject(bucketName, filename).getObjectContent();
+                byte[] fileByte = IOUtils.toByteArray(inputStream);
+                map.put("fileName", filename);
+                map.put("fileByte", Base64.encodeBase64String(fileByte));
+                list.add(list.size(), map);
+                oss.deleteObject(bucketName, filename);
+                log.info("删除阿里云oss中文件（{}）", filename);
+            }
+            String fileMapStr = JSONObject.toJSONString(list);
+            mailVoService.remove(new QueryWrapper<MailVo>().lambda().eq(MailVo::getFilesStr, filesStr));
+            log.info("删除数据库中数据{}", mailVo);
+            mailVo.setFilesStr(fileMapStr);
+            mailProduce.sendQue(mailVo);
+        }
     }
 }

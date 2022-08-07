@@ -1,23 +1,31 @@
 package com.caston.send_mail.mq.handler;
 
+import com.alibaba.fastjson.JSONObject;
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
 import com.caston.send_mail.entity.MailVo;
 import com.caston.send_mail.mq.consumer.MailConsumer;
 import com.caston.send_mail.service.MailVoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class MailHandler {
@@ -27,8 +35,6 @@ public class MailHandler {
     private ObjectMapper objectMapper;
     @Resource
     private MailConsumer mailConsumer;
-    @Resource
-    private MailVoService mailVoService;
     @Value("${mail.rabbitmq.max_retry}")
     private int MAX_RETRIES; //消息最大重试次数
     @Value("${mail.rabbitmq.retry_interval}")
@@ -66,15 +72,17 @@ public class MailHandler {
     }
 
     @RabbitListener(queues = "${mail.dead.queue.name}", containerFactory = "singleListenerContainer")
-    public void onDeadMessage(Message message, Channel channel) throws IOException {
+    public void onDeadMessage(Message message, Channel channel) throws Exception {
+        log.info("开始处理死信队列数据...");
         byte[] mailMessage = message.getBody();
         MailVo mailVo = objectMapper.readValue(mailMessage, MailVo.class);
-        mailVo.setDate(LocalDateTime.now());
-        boolean save = mailVoService.save(mailVo);
-        if (save) {
+        Boolean deal = mailConsumer.deadDeal(mailVo);
+        if (deal) {
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
+            log.info("消息处理成功...");
         } else {
             channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
+            log.info("消息处理失败...");
         }
     }
 }

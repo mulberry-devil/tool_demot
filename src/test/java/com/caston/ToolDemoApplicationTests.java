@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.UUID;
 
 @SpringBootTest
 class ToolDemoApplicationTests {
@@ -126,19 +128,12 @@ class ToolDemoApplicationTests {
     private RedisTemplate redisTemplate;
 
     @Test
-    void test3(){
-        // HttpHeaders headers = new HttpHeaders();
-        // headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
-        // HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-        //
-        // String response = restTemplate.exchange("https://tenapi.cn/resou/", HttpMethod.GET, entity, String.class).getBody();
-        // JSONObject jsonObject = JSONObject.parseObject(response);
-        // JSONArray jsonArray = jsonObject.getJSONArray("list");
-        // jsonArray.forEach(i->{
-        //     System.out.println();
-        //
-        // });
-        // Object weibo = redisTemplate.opsForValue().get("weibo");
-        // System.out.println(111);
+    void test3() {
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "").substring(0,10);
+        System.out.println(uuid);
+        String total = "aaaa,bbbb,";
+        String[] split = total.split(",");
+        System.out.println(split.length);
+        Arrays.stream(split).forEach(System.out::println);
     }
 }
