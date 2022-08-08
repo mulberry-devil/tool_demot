@@ -34,7 +34,6 @@ spring:
       test-while-idle: true # 指明连接是否被空闲连接回收器（如果有）进行检验，如果检验失败，则连接将被从池中去除
       test-on-borrow: false # 借出连接时不要测试，否则影响性能
 
-
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印执行的sql语句
