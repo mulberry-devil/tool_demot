@@ -14,7 +14,7 @@
 - Javamail
 - RabbitMQ
 - AliOSS
-  
+- xxl-job
 ## 搭建controller、service、mapper架构
 默认使用`application.yml`中配置的数据库信息生成所有表，目前只支持本地运行生成
 - 运行后访问`http://localhost:8080/swagger-ui/`
@@ -27,7 +27,17 @@
   - `parent`：指定包的父文件夹
   - `all`：是否生成全部表
   - `tables`：指定表，需要`all`为false
-  
+
+### 主要使用技术点
+
+- MyBatis-plus
+
 ## 查询热点数据
 支持抖音、微博、知乎、百度、哔哩哔哩热搜
-- 
+- 运行后访问`http://localhost:8080/swagger-ui/`
+
+### 主要使用技术点
+
+- Redis
+- xxl-job
+- RestTemplate
