@@ -6,6 +6,7 @@ import com.aliyun.oss.OSSClientBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.caston.hot_search.service.HotSearchService;
 import com.caston.send_mail.entity.MailVo;
+import com.caston.send_mail.enums.ALiOSSEnum;
 import com.caston.send_mail.mq.produce.MailProduce;
 import com.caston.send_mail.service.MailVoService;
 import com.xxl.job.core.context.XxlJobHelper;
@@ -42,12 +43,6 @@ public class HotSearchXxlJob {
     private MailVoService mailVoService;
     @Autowired
     private MailProduce mailProduce;
-    @Value("${mail.aliyun.endpoint}")
-    private String endpoint;
-    @Value("${mail.aliyun.accessKeyId}")
-    private String accessKeyId;
-    @Value("${mail.aliyun.accessKeySecret}")
-    private String accessKeySecret;
     @Value("${mail.aliyun.bucketName}")
     private String bucketName;
 
@@ -68,7 +63,7 @@ public class HotSearchXxlJob {
     @XxlJob("dealDeadMailJobHandler")
     public void dealDeadMailJobHandler() throws Exception {
         log.info("开始执行邮件发送失败重试任务");
-        OSS oss = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        OSS oss = new OSSClientBuilder().build(ALiOSSEnum.ENDPOINT.getAliField(), ALiOSSEnum.ACCESSKEYID.getAliField(), ALiOSSEnum.ACCESSKEYSECRET.getAliField());
         List<MailVo> mailVos = mailVoService.list();
         for (MailVo mailVo : mailVos) {
             List<Map<String, Object>> list = new ArrayList<>();

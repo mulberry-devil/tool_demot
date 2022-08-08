@@ -1,6 +1,9 @@
 package com.caston.init;
 
 import com.caston.hot_search.service.HotSearchService;
+import com.caston.send_mail.entity.Alioss;
+import com.caston.send_mail.enums.ALiOSSEnum;
+import com.caston.send_mail.service.AliossService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +26,17 @@ public class DemoInit {
 
     @Autowired
     private HotSearchService hotSearchService;
+    @Autowired
+    private AliossService aliossService;
 
     @PostConstruct
     public void init() {
-        log.info("项目启动，开始初始化热点数据......");
+        log.info("项目启动，开始初始化阿里云oss......");
+        Alioss alioss = aliossService.getOne(null);
+        ALiOSSEnum.ENDPOINT.setAliField(alioss.getEndpoint());
+        ALiOSSEnum.ACCESSKEYID.setAliField(alioss.getAccesskeyid());
+        ALiOSSEnum.ACCESSKEYSECRET.setAliField(alioss.getAccesskeysecret());
+        log.info("开始初始化热点数据......");
         try {
             hotSearchService.addHotSearchInit("weibo", "https://tenapi.cn/resou/");
             hotSearchService.addHotSearchInit("zhihu", "https://tenapi.cn/zhihuresou/");

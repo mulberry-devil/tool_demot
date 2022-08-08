@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.caston.send_mail.entity.MailVo;
+import com.caston.send_mail.enums.ALiOSSEnum;
 import com.caston.send_mail.service.MailVoService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,12 +35,6 @@ public class MailConsumer {
     private JavaMailSenderImpl mailSender;
     @Autowired
     private MailVoService mailVoService;
-    @Value("${mail.aliyun.endpoint}")
-    private String endpoint;
-    @Value("${mail.aliyun.accessKeyId}")
-    private String accessKeyId;
-    @Value("${mail.aliyun.accessKeySecret}")
-    private String accessKeySecret;
     @Value("${mail.aliyun.bucketName}")
     private String bucketName;
 
@@ -76,7 +71,7 @@ public class MailConsumer {
     }
 
     public Boolean deadDeal(MailVo mailVo) {
-        OSS oss = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        OSS oss = new OSSClientBuilder().build(ALiOSSEnum.ENDPOINT.getAliField(), ALiOSSEnum.ACCESSKEYID.getAliField(), ALiOSSEnum.ACCESSKEYSECRET.getAliField());
         List<Map> fileList = JSONObject.parseArray(mailVo.getFilesStr(), Map.class);
         StringBuilder stringBuilder = new StringBuilder();
         if (fileList != null && fileList.size() > 0) {

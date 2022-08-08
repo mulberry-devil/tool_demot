@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.generator.config.GlobalConfig;
 import com.baomidou.mybatisplus.generator.config.PackageConfig;
 import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
+import com.caston.send_mail.enums.ALiOSSEnum;
 import org.apache.shiro.crypto.hash.Md5Hash;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,12 +55,12 @@ class ToolDemoApplicationTests {
         mpg.setDataSource(dsc);
 // 4、包配置
         PackageConfig pc = new PackageConfig();
-        pc.setParent("com.caston");
+        pc.setParent("com.caston.send_mail");
         pc.setEntity("entity"); //此对象与数据库表结构一一对应，通过 DAO 层向上传输数据源对象。
         mpg.setPackageInfo(pc);
 // 5、策略配置
         StrategyConfig strategy = new StrategyConfig();
-        strategy.setInclude(new String[]{"mail_vo"});//指定表
+        strategy.setInclude(new String[]{"alioss"});//指定表
         strategy.setNaming(NamingStrategy.underline_to_camel);//数据库表映射到实体的命名策略
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);//数据库表字段映射到实体的命名策略
         strategy.setEntityLombokModel(true); // lombok
@@ -122,18 +123,11 @@ class ToolDemoApplicationTests {
         System.out.println(md5Hash2.toHex());
     }
 
-    @Autowired
-    private RestTemplate restTemplate;
-    @Autowired
-    private RedisTemplate redisTemplate;
-
     @Test
     void test3() {
-        String uuid = UUID.randomUUID().toString().replaceAll("-", "").substring(0,10);
-        System.out.println(uuid);
-        String total = "aaaa,bbbb,";
-        String[] split = total.split(",");
-        System.out.println(split.length);
-        Arrays.stream(split).forEach(System.out::println);
+        ALiOSSEnum.ENDPOINT.setAliField("aaaaa");
+        ALiOSSEnum.ACCESSKEYID.setAliField("bbbbb");
+        ALiOSSEnum.ACCESSKEYSECRET.setAliField("ccccc");
+        System.out.println(ALiOSSEnum.ENDPOINT.getAliField());
     }
 }
