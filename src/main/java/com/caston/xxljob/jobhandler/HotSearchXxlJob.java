@@ -9,6 +9,9 @@ import com.caston.send_mail.entity.MailVo;
 import com.caston.send_mail.enums.ALiOSSEnum;
 import com.caston.send_mail.mq.produce.MailProduce;
 import com.caston.send_mail.service.MailVoService;
+import com.caston.wechat.entity.Content;
+import com.caston.wechat.service.WechatService;
+import com.caston.wechat.service.WechatUserService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.apache.commons.io.IOUtils;
@@ -41,6 +44,10 @@ public class HotSearchXxlJob {
     private HotSearchService hotSearchService;
     @Autowired
     private MailVoService mailVoService;
+    @Autowired
+    private WechatService wechatService;
+    @Autowired
+    private WechatUserService wechatUserService;
     @Autowired
     private MailProduce mailProduce;
     @Value("${mail.aliyun.bucketName}")
@@ -85,5 +92,16 @@ public class HotSearchXxlJob {
             mailVo.setFilesStr(fileMapStr);
             mailProduce.sendQue(mailVo);
         }
+    }
+
+    @XxlJob("sendWechatJobHandler")
+    public void sendWechatJobHandler() throws Exception {
+        log.info("开始执行微信公众号推送任务");
+        wechatUserService.list().stream().forEach(i -> {
+            Map<String, Content> weather = wechatService.getWeather(i);
+            String accessToken = wechatService.getAccessToken(i);
+            wechatService.send(i, accessToken, weather);
+        });
+        log.info("微信公众号推送任务结束");
     }
 }

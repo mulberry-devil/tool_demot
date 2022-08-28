@@ -1,9 +1,15 @@
 package com.caston.init;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.caston.hot_search.service.HotSearchService;
 import com.caston.send_mail.entity.Alioss;
 import com.caston.send_mail.enums.ALiOSSEnum;
 import com.caston.send_mail.service.AliossService;
+import com.caston.wechat.entity.Wechat;
+import com.caston.wechat.entity.WechatTemplate;
+import com.caston.wechat.enums.WeChatEnum;
+import com.caston.wechat.service.WechatService;
+import com.caston.wechat.service.WechatTemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +34,10 @@ public class DemoInit {
     private HotSearchService hotSearchService;
     @Autowired
     private AliossService aliossService;
+    @Autowired
+    private WechatService wechatService;
+    @Autowired
+    WechatTemplateService wechatTemplateService;
 
     @PostConstruct
     public void init() {
@@ -44,6 +54,16 @@ public class DemoInit {
             hotSearchService.addHotSearchInit("blibli", "https://tenapi.cn/bilihot/");
             hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
             log.info("热点数据初始化结束......");
+        } catch (Exception e) {
+            log.error("初始化数据发生异常：{}", e);
+        }
+        log.info("开始初始化微信开发数据......");
+        try {
+            Wechat wechat = wechatService.getOne(new LambdaQueryWrapper<Wechat>().eq(Wechat::getStatus, 1));
+            WeChatEnum.APPID.setAliField(wechat.getAppid());
+            WeChatEnum.APPSECRET.setAliField(wechat.getAppsecret());
+            WechatTemplate template = wechatTemplateService.getOne(new LambdaQueryWrapper<WechatTemplate>().eq(WechatTemplate::getStatue, 1));
+            WeChatEnum.TEMPLATEID.setAliField(template.getTemplateid());
         } catch (Exception e) {
             log.error("初始化数据发生异常：{}", e);
         }
