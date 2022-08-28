@@ -11,6 +11,10 @@ import com.baomidou.mybatisplus.generator.config.PackageConfig;
 import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.caston.send_mail.enums.ALiOSSEnum;
+import com.caston.wechat.entity.Content;
+import com.caston.wechat.entity.WechatToken;
+import com.caston.wechat.enums.WeChatEnum;
+import com.caston.wechat.service.WechatTokenService;
 import org.apache.shiro.crypto.hash.Md5Hash;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
@@ -27,8 +32,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.UUID;
+import java.text.DateFormat;
+import java.util.*;
 
 @SpringBootTest
 class ToolDemoApplicationTests {
@@ -129,5 +134,86 @@ class ToolDemoApplicationTests {
         ALiOSSEnum.ACCESSKEYID.setAliField("bbbbb");
         ALiOSSEnum.ACCESSKEYSECRET.setAliField("ccccc");
         System.out.println(ALiOSSEnum.ENDPOINT.getAliField());
+    }
+
+    @Autowired
+    private WechatTokenService wechatTokenService;
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Test
+    void test4() {
+        WechatToken wechatToken = wechatTokenService.getOne(null);
+        String access_token = "";
+        if (wechatToken == null) {
+            String url = WeChatEnum.ACCESS_TOKEN_URL.getAliField().replace("APPID", WeChatEnum.APPID.getAliField()).replace("APPSECRET", WeChatEnum.APPSECRET.getAliField());
+            ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
+            JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
+            Object errcode = jsonObject.get("errcode");
+            if (errcode != null && "40013".equals(errcode.toString())) {
+                return;
+            }
+            access_token = jsonObject.getString("access_token");
+            int expires_in = jsonObject.getIntValue("expires_in");
+            WechatToken token = new WechatToken(access_token, new Date(), expires_in);
+            wechatTokenService.save(token);
+        } else {
+            Date now = new Date();
+            Date expire = new Date(wechatToken.getStartTime().getTime() + wechatToken.getExpiresIn() * 1000);
+            if (now.compareTo(expire) != -1) {
+                String url = WeChatEnum.ACCESS_TOKEN_URL.getAliField().replace("APPID", WeChatEnum.APPID.getAliField()).replace("APPSECRET", WeChatEnum.APPSECRET.getAliField());
+                ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
+                JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
+                Object errcode = jsonObject.get("errcode");
+                if (errcode != null && "40013".equals(errcode.toString())) {
+                    return;
+                }
+                access_token = jsonObject.getString("access_token");
+                int expires_in = jsonObject.getIntValue("expires_in");
+                WechatToken token = new WechatToken(access_token, new Date(), expires_in);
+                wechatTokenService.update(token, null);
+            } else {
+                access_token = wechatToken.getAccessToken();
+            }
+        }
+
+//        String city_url = "https://geoapi.qweather.com/v2/city/lookup?key=5d3cb817dd424f98a1f92c0173283102&&location=常熟";
+//        ResponseEntity<String> city = restTemplate.getForEntity(city_url, String.class);
+        String url_weather = "https://tenapi.cn/wether/?city=常熟";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
+        HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
+
+        String response = restTemplate.exchange(url_weather, HttpMethod.GET, entity, String.class).getBody();
+        JSONObject json = JSONObject.parseObject(response);
+        JSONObject data = json.getJSONObject("data").getJSONArray("forecast").getJSONObject(0);
+        String date = data.getString("date");
+        String high = data.getString("high");
+        String low = data.getString("low");
+        String fengxiang = data.getString("fengxiang");
+        String type = data.getString("type");
+        String wendu = json.getJSONObject("data").getString("wendu");
+
+        String templateId = "lRWtq-7TyHay1YmrRRwnyaqIEJ02aeGaALJ6TPaoyHs";
+        Map<String, Content> sendMag = new HashMap<>();
+        DateFormat formatter = DateFormat.getDateTimeInstance();
+        sendMag.put("date", new Content(formatter.format(new Date()),"#f6bec8"));
+        sendMag.put("city", new Content("常熟","#a85858"));
+        sendMag.put("wether", new Content(type));
+        sendMag.put("current", new Content(wendu));
+        sendMag.put("high", new Content(high));
+        sendMag.put("low", new Content(low));
+        sendMag.put("fengxiang", new Content(fengxiang));
+        sendMag.put("day", new Content("已经做了5000天地球人"));
+        sendMag.put("note", new Content("明天要把冰箱里的酸奶带到公司\n测试换行"));
+        String url = WeChatEnum.SEND_URL.getAliField().replace("ACCESS_TOKEN", access_token);
+        Map<String, Object> sendBody = new HashMap<>();
+        sendBody.put("touser", "oQ4gy6YwpA2o117Vx5dzy0WQ0rCY");                 // openId
+        sendBody.put("topcolor", "#FF0000");          // 顶色
+        sendBody.put("data", sendMag);                   // 模板参数
+        sendBody.put("template_id", templateId);      // 模板Id
+        ResponseEntity<String> forEntity = restTemplate.postForEntity(url, sendBody, String.class);
+        JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
+        System.out.println(jsonObject);
     }
 }

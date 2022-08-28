@@ -64,7 +64,7 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
                 String wendu = json.getJSONObject("data").getString("wendu");
                 DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                 sendMag.put("date", new Content(formatter.format(new Date()), "#f6bec8"));
-                sendMag.put("city", new Content(wechatUser.getCity(), "#a85858"));
+                sendMag.put("city", new Content(wechatUser.getCity()));
                 sendMag.put("wether", new Content(type));
                 sendMag.put("current", new Content(wendu));
                 sendMag.put("high", new Content(high));
@@ -73,9 +73,9 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
                 long now = formatter.parse(formatter.format(new Date()).split(" ")[0]).getTime();
                 long birthday = wechatUser.getBirthday().getTime();
                 String day = String.valueOf((now - birthday) / 24 / 60 / 60 / 1000);
-                sendMag.put("day", new Content(day));
+                sendMag.put("day", new Content(day, "#eeb8c3"));
                 WechatNote wechatNote = wechatNoteMapper.selectOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getUserid, wechatUser.getUserId()).eq(WechatNote::getIsnew, 1));
-                sendMag.put("note", new Content(wechatNote == null ? "无" : wechatNote.getNote().replace(";", "\n")));
+                sendMag.put("note", new Content(wechatNote == null ? "无" : wechatNote.getNote().replace(";", "\n"), "#f8df72"));
                 isOk = false;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -115,7 +115,8 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
         sendBody.put("data", weather);
         sendBody.put("template_id", WeChatEnum.TEMPLATEID.getAliField());
         ResponseEntity<String> forEntity = restTemplate.postForEntity(url, sendBody, String.class);
-        JSONObject.parseObject(forEntity.getBody());
+        JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
+        System.out.println(jsonObject);
         wechatNoteMapper.update(null, new LambdaUpdateWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, wechatUser.getUserId()).set(WechatNote::getIsnew, 0));
         return "success";
     }
