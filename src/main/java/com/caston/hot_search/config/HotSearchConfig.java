@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -15,9 +17,13 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class HotSearchConfig {
+
+    @Autowired
+    private RestTemplateBuilder builder;
+
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        return builder.build();
     }
 
     /**

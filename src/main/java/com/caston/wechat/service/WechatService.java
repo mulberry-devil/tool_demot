@@ -20,5 +20,5 @@ public interface WechatService extends IService<Wechat> {
 
     public String getAccessToken(WechatUser wechatUser);
 
-    public String send(WechatUser wechatUser,String accessToken,Map<String, Content> weather);
+    public void send(WechatUser wechatUser,String accessToken,Map<String, Content> weather);
 }

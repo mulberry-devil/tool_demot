@@ -1,6 +1,7 @@
 package com.caston.wechat.controller;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.caston.wechat.entity.Content;
@@ -9,14 +10,11 @@ import com.caston.wechat.entity.WechatUser;
 import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
 import com.caston.wechat.service.WechatUserService;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.Map;
@@ -64,6 +62,11 @@ public class WechatController {
         } else {
             wechatNoteService.save(new WechatNote(userId, note, new Date(), 1));
         }
+    }
+
+    @PostMapping("/addUser")
+    public void addUser(@RequestBody WechatUser wechatUser) {
+        wechatUserService.save(wechatUser);
     }
 }
 

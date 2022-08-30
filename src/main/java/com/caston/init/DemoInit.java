@@ -55,7 +55,7 @@ public class DemoInit {
             hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
             log.info("热点数据初始化结束......");
         } catch (Exception e) {
-            log.error("初始化数据发生异常：{}", e);
+            log.error("初始化数据发生异常：", e);
         }
         log.info("开始初始化微信开发数据......");
         try {
@@ -65,7 +65,7 @@ public class DemoInit {
             WechatTemplate template = wechatTemplateService.getOne(new LambdaQueryWrapper<WechatTemplate>().eq(WechatTemplate::getStatue, 1));
             WeChatEnum.TEMPLATEID.setAliField(template.getTemplateid());
         } catch (Exception e) {
-            log.error("初始化数据发生异常：{}", e);
+            log.error("初始化数据发生异常：", e);
         }
     }
 }

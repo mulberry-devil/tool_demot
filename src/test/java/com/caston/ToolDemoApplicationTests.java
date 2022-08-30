@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.generator.AutoGenerator;
 import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
 import com.baomidou.mybatisplus.generator.config.GlobalConfig;
@@ -12,6 +13,7 @@ import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.caston.send_mail.enums.ALiOSSEnum;
 import com.caston.wechat.entity.Content;
+import com.caston.wechat.entity.WechatNote;
 import com.caston.wechat.entity.WechatToken;
 import com.caston.wechat.enums.WeChatEnum;
 import com.caston.wechat.service.WechatTokenService;
@@ -33,6 +35,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SpringBootTest
@@ -197,8 +200,8 @@ class ToolDemoApplicationTests {
         String templateId = "lRWtq-7TyHay1YmrRRwnyaqIEJ02aeGaALJ6TPaoyHs";
         Map<String, Content> sendMag = new HashMap<>();
         DateFormat formatter = DateFormat.getDateTimeInstance();
-        sendMag.put("date", new Content(formatter.format(new Date()),"#f6bec8"));
-        sendMag.put("city", new Content("常熟","#a85858"));
+        sendMag.put("date", new Content(formatter.format(new Date()), "#f6bec8"));
+        sendMag.put("city", new Content("常熟", "#a85858"));
         sendMag.put("wether", new Content(type));
         sendMag.put("current", new Content(wendu));
         sendMag.put("high", new Content(high));
@@ -216,4 +219,67 @@ class ToolDemoApplicationTests {
         JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
         System.out.println(jsonObject);
     }
+
+    @Test
+    void test5() {
+        Map<String, Content> sendMag = new HashMap<>();
+        String city_url = WeChatEnum.CITY_URL.getAliField().replace("REGION", "常熟");
+        ResponseEntity<String> city = restTemplate.getForEntity(city_url, String.class);
+        JSONObject city_json = JSONObject.parseObject(city.getBody());
+        JSONArray location = city_json.getJSONArray("location");
+        location.forEach(i -> {
+            JSONObject region_json = (JSONObject) i;
+            String adm2 = region_json.getString("adm2");
+            if (adm2.contains("苏州")) {
+                String id = region_json.getString("id");
+                String weather_url = WeChatEnum.WEATHER_URL.getAliField().replace("TYPE", "3d").replace("CITYID", id);
+                ResponseEntity<String> weather = restTemplate.getForEntity(weather_url, String.class);
+                JSONObject weather_json = JSONObject.parseObject(weather.getBody());
+                JSONObject daily = weather_json.getJSONArray("daily").getJSONObject(0);
+                String fxDate = daily.getString("fxDate");
+                String textDay = daily.getString("textDay");
+                String textNight = daily.getString("textNight");
+                String tempMax = daily.getString("tempMax");
+                String tempMin = daily.getString("tempMin");
+                String windDirDay = daily.getString("windDirDay");
+                String windScaleDay = daily.getString("windScaleDay");
+                String windSpeedDay = daily.getString("windSpeedDay");
+                String windDirNight = daily.getString("windDirNight");
+                String windScaleNight = daily.getString("windScaleNight");
+                String windSpeedNight = daily.getString("windSpeedNight");
+                String uvIndex = daily.getString("uvIndex");
+                String vis = daily.getString("vis");
+                String weather_now_url = WeChatEnum.WEATHER_URL.getAliField().replace("TYPE", "now").replace("CITYID", id);
+                ResponseEntity<String> weather_now = restTemplate.getForEntity(weather_now_url, String.class);
+                JSONObject weather_now_json = JSONObject.parseObject(weather_now.getBody());
+                String temp = weather_now_json.getJSONObject("now").getString("temp");
+                String text_url = WeChatEnum.TEXT_URL.getAliField().replace("CITYID", id);
+                ResponseEntity<String> text = restTemplate.getForEntity(text_url, String.class);
+                JSONObject text_json = JSONObject.parseObject(text.getBody());
+                StringBuilder stringBuilder = new StringBuilder();
+                text_json.getJSONArray("daily").forEach(j -> {
+                    JSONObject json = (JSONObject) j;
+                    stringBuilder.append(json.getString("text") + "\n");
+                });
+                sendMag.put("fxDate", new Content(fxDate));
+                sendMag.put("region", new Content("常熟"));
+                sendMag.put("textDay", new Content(textDay));
+                sendMag.put("textNight", new Content(textNight));
+                sendMag.put("temp", new Content(temp));
+                sendMag.put("tempMax", new Content(tempMax));
+                sendMag.put("tempMin", new Content(tempMin));
+                sendMag.put("windDirDay", new Content(windDirDay));
+                sendMag.put("windScaleDay", new Content(windScaleDay));
+                sendMag.put("windSpeedDay", new Content(windSpeedDay));
+                sendMag.put("windDirNight", new Content(windDirNight));
+                sendMag.put("windScaleNight", new Content(windScaleNight));
+                sendMag.put("windSpeedNight", new Content(windSpeedNight));
+                sendMag.put("uvIndex", new Content(uvIndex));
+                sendMag.put("vis", new Content(vis));
+                sendMag.put("day", new Content("5000"));
+                sendMag.put("note", new Content(stringBuilder.toString()));
+            }
+        });
+    }
 }
+

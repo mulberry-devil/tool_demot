@@ -1,5 +1,6 @@
 package com.caston.wechat.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -54,40 +56,87 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     public Map<String, Content> getWeather(WechatUser wechatUser) {
         Boolean isOk = true;
         Map<String, Content> sendMag = new HashMap<>();
+        int errorNum = 5;
         while (isOk) {
             try {
                 log.info("开始获取{}的天气数据...", wechatUser.getCity());
-                String weather_url = WeChatEnum.WEATHER_URL.getAliField().replace("USERCITY", wechatUser.getCity());
-                HttpHeaders headers = new HttpHeaders();
-                headers.add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
-                HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-                String response = restTemplate.exchange(weather_url, HttpMethod.GET, entity, String.class).getBody();
-                log.info("获取{}的天气数据完成，开始封装模板数据...", wechatUser.getCity());
-                JSONObject json = JSONObject.parseObject(response);
-                JSONObject data = json.getJSONObject("data").getJSONArray("forecast").getJSONObject(0);
-                String high = data.getString("high").split(" ")[1];
-                String low = data.getString("low").split(" ")[1];
-                String fengxiang = data.getString("fengxiang");
-                String type = data.getString("type");
-                String wendu = json.getJSONObject("data").getString("wendu");
-                DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                sendMag.put("date", new Content(formatter.format(new Date()), "#f6bec8"));
-                sendMag.put("city", new Content(wechatUser.getCity()));
-                sendMag.put("wether", new Content(type));
-                sendMag.put("current", new Content(wendu));
-                sendMag.put("high", new Content(high));
-                sendMag.put("low", new Content(low));
-                sendMag.put("fengxiang", new Content(fengxiang));
-                long now = formatter.parse(formatter.format(new Date()).split(" ")[0]).getTime();
-                long birthday = wechatUser.getBirthday().getTime();
-                String day = String.valueOf((now - birthday) / 24 / 60 / 60 / 1000);
-                sendMag.put("day", new Content(day, "#eeb8c3"));
-                WechatNote wechatNote = wechatNoteMapper.selectOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getUserid, wechatUser.getUserId()).eq(WechatNote::getIsnew, 1));
-                sendMag.put("note", new Content(wechatNote == null ? "无" : wechatNote.getNote().replace(";", "\n"), "#f8df72"));
-                log.info("封装模板数据完成...");
+                String city_url = WeChatEnum.CITY_URL.getAliField().replace("REGION", wechatUser.getRegion());
+                ResponseEntity<String> city = restTemplate.getForEntity(city_url, String.class);
+                JSONObject city_json = JSONObject.parseObject(city.getBody());
+                JSONArray location = city_json.getJSONArray("location");
+                location.forEach(i -> {
+                    JSONObject region_json = (JSONObject) i;
+                    String adm2 = region_json.getString("adm2");
+                    if (adm2.contains(wechatUser.getCity())) {
+                        String id = region_json.getString("id");
+                        String weather_url = WeChatEnum.WEATHER_URL.getAliField().replace("TYPE", "3d").replace("CITYID", id);
+                        ResponseEntity<String> weather = restTemplate.getForEntity(weather_url, String.class);
+                        JSONObject weather_json = JSONObject.parseObject(weather.getBody());
+                        String weather_now_url = WeChatEnum.WEATHER_URL.getAliField().replace("TYPE", "now").replace("CITYID", id);
+                        ResponseEntity<String> weather_now = restTemplate.getForEntity(weather_now_url, String.class);
+                        JSONObject weather_now_json = JSONObject.parseObject(weather_now.getBody());
+                        String text_url = WeChatEnum.TEXT_URL.getAliField().replace("CITYID", id);
+                        ResponseEntity<String> text = restTemplate.getForEntity(text_url, String.class);
+                        JSONObject text_json = JSONObject.parseObject(text.getBody());
+                        JSONObject daily = weather_json.getJSONArray("daily").getJSONObject(0);
+                        String fxDate = daily.getString("fxDate");
+                        String textDay = daily.getString("textDay");
+                        String textNight = daily.getString("textNight");
+                        String tempMax = daily.getString("tempMax");
+                        String tempMin = daily.getString("tempMin");
+                        String windDirDay = daily.getString("windDirDay");
+                        String windScaleDay = daily.getString("windScaleDay");
+                        String windSpeedDay = daily.getString("windSpeedDay");
+                        String windDirNight = daily.getString("windDirNight");
+                        String windScaleNight = daily.getString("windScaleNight");
+                        String windSpeedNight = daily.getString("windSpeedNight");
+                        String uvIndex = daily.getString("uvIndex");
+                        String vis = daily.getString("vis");
+                        String temp = weather_now_json.getJSONObject("now").getString("temp");
+                        StringBuilder stringBuilder = new StringBuilder();
+                        text_json.getJSONArray("daily").forEach(j -> {
+                            JSONObject json = (JSONObject) j;
+                            stringBuilder.append(json.getString("text") + "\n");
+                        });
+                        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                        long now = 0;
+                        try {
+                            now = formatter.parse(formatter.format(new Date()).split(" ")[0]).getTime();
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        long birthday = wechatUser.getBirthday().getTime();
+                        String day = String.valueOf((now - birthday) / 24 / 60 / 60 / 1000);
+                        WechatNote wechatNote = wechatNoteMapper.selectOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getUserid, wechatUser.getUserId()).eq(WechatNote::getIsnew, 1));
+                        log.info("获取{}的天气数据完成，开始封装模板数据...", wechatUser.getRegion());
+                        sendMag.put("fxDate", new Content(fxDate, "#f6bec8"));
+                        sendMag.put("region", new Content(wechatUser.getRegion()));
+                        sendMag.put("textDay", new Content(textDay));
+                        sendMag.put("textNight", new Content(textNight));
+                        sendMag.put("temp", new Content(temp));
+                        sendMag.put("tempMax", new Content(tempMax));
+                        sendMag.put("tempMin", new Content(tempMin));
+                        sendMag.put("windDirDay", new Content(windDirDay));
+                        sendMag.put("windScaleDay", new Content(windScaleDay));
+                        sendMag.put("windSpeedDay", new Content(windSpeedDay));
+                        sendMag.put("windDirNight", new Content(windDirNight));
+                        sendMag.put("windScaleNight", new Content(windScaleNight));
+                        sendMag.put("windSpeedNight", new Content(windSpeedNight));
+                        sendMag.put("uvIndex", new Content(uvIndex));
+                        sendMag.put("vis", new Content(vis));
+                        sendMag.put("text", new Content(stringBuilder.toString()));
+                        sendMag.put("day", new Content(day, "#eeb8c3"));
+                        sendMag.put("note", new Content(wechatNote == null ? "无" : wechatNote.getNote().replace(";", "\n"), "#f8df72"));
+                        log.info("封装模板数据完成...");
+                    }
+                });
                 isOk = false;
             } catch (Exception e) {
-                log.error("获取{}的天气数据失败，开始重新获取：{}", wechatUser.getCity(), e);
+                log.error("获取{}的天气数据失败，开始重新获取：", wechatUser.getCity(), e);
+                errorNum--;
+                if (errorNum == 0) {
+                    isOk = false;
+                }
             }
         }
         return sendMag;
@@ -118,24 +167,28 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     }
 
     @Override
-    public String send(WechatUser wechatUser, String accessToken, Map<String, Content> weather) {
-        log.info("开始推送微信模板给用户...");
-        String url = WeChatEnum.SEND_URL.getAliField().replace("ACCESS_TOKEN", accessToken);
-        Map<String, Object> sendBody = new HashMap<>();
-        sendBody.put("touser", wechatUser.getUserId());
-        sendBody.put("topcolor", "#FF0000");
-        sendBody.put("data", weather);
-        sendBody.put("template_id", WeChatEnum.TEMPLATEID.getAliField());
-        ResponseEntity<String> forEntity = restTemplate.postForEntity(url, sendBody, String.class);
-        JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
-        log.info("推送结果：{}", jsonObject);
-        wechatNoteMapper.update(null, new LambdaUpdateWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, wechatUser.getUserId()).set(WechatNote::getIsnew, 0));
-        return "success";
+    public void send(WechatUser wechatUser, String accessToken, Map<String, Content> weather) {
+        try {
+            log.info("开始推送微信模板给用户...");
+            String url = WeChatEnum.SEND_URL.getAliField().replace("ACCESS_TOKEN", accessToken);
+            Map<String, Object> sendBody = new HashMap<>();
+            sendBody.put("touser", wechatUser.getUserId());
+            sendBody.put("topcolor", "#FF0000");
+            sendBody.put("data", weather);
+            sendBody.put("template_id", WeChatEnum.TEMPLATEID.getAliField());
+            ResponseEntity<String> forEntity = restTemplate.postForEntity(url, sendBody, String.class);
+            JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
+            log.info("推送结果：{}", jsonObject);
+            wechatNoteMapper.update(null, new LambdaUpdateWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, wechatUser.getUserId()).set(WechatNote::getIsnew, 0));
+        } catch (Exception e) {
+            log.error("推送微信模板给用户失败：", e);
+        }
     }
 
     public WechatToken getToken() {
         Boolean isOk = true;
         WechatToken token = null;
+        int errorNum = 5;
         while (isOk) {
             try {
                 log.info("开始从微信官方获取access_token...");
@@ -143,15 +196,20 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
                 ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
                 JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
                 Object errcode = jsonObject.get("errcode");
-                if (errcode != null && "40013".equals(errcode.toString())) {
+                if (errcode != null) {
                     throw new WeChatException("获取失败");
                 }
                 String access_token = jsonObject.getString("access_token");
                 int expires_in = jsonObject.getIntValue("expires_in");
                 token = new WechatToken(access_token, new Date(), expires_in);
                 log.info("从微信官方获取access_token成功...");
+                isOk = false;
             } catch (Exception e) {
-                log.error("从微信官方获取access_token失败：{}", e);
+                log.error("从微信官方获取access_token失败：", e);
+                errorNum--;
+                if (errorNum == 0) {
+                    isOk = false;
+                }
             }
         }
         return token;
