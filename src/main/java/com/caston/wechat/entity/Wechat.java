@@ -26,5 +26,5 @@ public class Wechat implements Serializable {
 
     private Integer status;
 
-
+    private String type;
 }

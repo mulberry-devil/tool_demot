@@ -59,11 +59,15 @@ public class DemoInit {
         }
         log.info("开始初始化微信开发数据......");
         try {
-            Wechat wechat = wechatService.getOne(new LambdaQueryWrapper<Wechat>().eq(Wechat::getStatus, 1));
+            Wechat wechat = wechatService.getOne(new LambdaQueryWrapper<Wechat>().eq(Wechat::getStatus, 1).eq(Wechat::getType, "wechat"));
             WeChatEnum.APPID.setAliField(wechat.getAppid());
             WeChatEnum.APPSECRET.setAliField(wechat.getAppsecret());
             WechatTemplate template = wechatTemplateService.getOne(new LambdaQueryWrapper<WechatTemplate>().eq(WechatTemplate::getStatue, 1));
             WeChatEnum.TEMPLATEID.setAliField(template.getTemplateid());
+            Wechat wether = wechatService.getOne(new LambdaQueryWrapper<Wechat>().eq(Wechat::getStatus, 1).eq(Wechat::getType, "wether"));
+            WeChatEnum.CITY_URL.setAliField(WeChatEnum.CITY_URL.getAliField().replace("MYKEY", wether.getAppsecret()));
+            WeChatEnum.WEATHER_URL.setAliField(WeChatEnum.WEATHER_URL.getAliField().replace("MYKEY", wether.getAppsecret()));
+            WeChatEnum.TEXT_URL.setAliField(WeChatEnum.TEXT_URL.getAliField().replace("MYKEY", wether.getAppsecret()));
         } catch (Exception e) {
             log.error("初始化数据发生异常：", e);
         }
