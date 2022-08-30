@@ -55,7 +55,7 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     @Override
     public Map<String, Content> getWeather(WechatUser wechatUser) {
         Boolean isOk = true;
-        Map<String, Content> sendMag = new HashMap<>();
+        Map<String, Content> sendMag = null;
         int errorNum = 5;
         while (isOk) {
             try {
@@ -64,7 +64,7 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
                 ResponseEntity<String> city = restTemplate.getForEntity(city_url, String.class);
                 JSONObject city_json = JSONObject.parseObject(city.getBody());
                 JSONArray location = city_json.getJSONArray("location");
-                location.forEach(i -> {
+                for (Object i : location) {
                     JSONObject region_json = (JSONObject) i;
                     String adm2 = region_json.getString("adm2");
                     if (adm2.contains(wechatUser.getCity())) {
@@ -100,36 +100,24 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
                         });
                         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                         long now = 0;
-                        try {
-                            now = formatter.parse(formatter.format(new Date()).split(" ")[0]).getTime();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
+                        now = formatter.parse(formatter.format(new Date()).split(" ")[0]).getTime();
                         long birthday = wechatUser.getBirthday().getTime();
                         String day = String.valueOf((now - birthday) / 24 / 60 / 60 / 1000);
                         WechatNote wechatNote = wechatNoteMapper.selectOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getUserid, wechatUser.getUserId()).eq(WechatNote::getIsnew, 1));
                         log.info("获取{}的天气数据完成，开始封装模板数据...", wechatUser.getRegion());
-                        sendMag.put("fxDate", new Content(fxDate, "#f6bec8"));
-                        sendMag.put("region", new Content(wechatUser.getRegion()));
-                        sendMag.put("textDay", new Content(textDay));
-                        sendMag.put("textNight", new Content(textNight));
-                        sendMag.put("temp", new Content(temp));
-                        sendMag.put("tempMax", new Content(tempMax));
-                        sendMag.put("tempMin", new Content(tempMin));
-                        sendMag.put("windDirDay", new Content(windDirDay));
-                        sendMag.put("windScaleDay", new Content(windScaleDay));
-                        sendMag.put("windSpeedDay", new Content(windSpeedDay));
-                        sendMag.put("windDirNight", new Content(windDirNight));
-                        sendMag.put("windScaleNight", new Content(windScaleNight));
-                        sendMag.put("windSpeedNight", new Content(windSpeedNight));
-                        sendMag.put("uvIndex", new Content(uvIndex));
-                        sendMag.put("vis", new Content(vis));
-                        sendMag.put("text", new Content(stringBuilder.toString()));
-                        sendMag.put("day", new Content(day, "#eeb8c3"));
-                        sendMag.put("note", new Content(wechatNote == null ? "无" : wechatNote.getNote().replace(";", "\n"), "#f8df72"));
+                        MessageMap.Builder builder = new MessageMap.Builder();
+                        sendMag = builder.put("fxDate", fxDate, "#f6bec8").put("region", wechatUser.getRegion())
+                                .put("textDay", textDay).put("textNight", textNight)
+                                .put("temp", temp).put("tempMax", tempMax)
+                                .put("tempMin", tempMin).put("windDirDay", windDirDay)
+                                .put("windScaleDay", windScaleDay).put("windSpeedDay", windSpeedDay)
+                                .put("windDirNight", windDirNight).put("windScaleNight", windScaleNight)
+                                .put("windSpeedNight", windSpeedNight).put("uvIndex", uvIndex).put("vis", vis)
+                                .put("text", stringBuilder.toString()).put("day", day, "#eeb8c3")
+                                .put("note", wechatNote == null ? "无" : wechatNote.getNote().replace(";", "\n").replace("；", "\n"), "#f8df72").build();
                         log.info("封装模板数据完成...");
                     }
-                });
+                }
                 isOk = false;
             } catch (Exception e) {
                 log.error("获取{}的天气数据失败，开始重新获取：", wechatUser.getCity(), e);
@@ -147,22 +135,26 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
         log.info("开始获取有效的access_token...");
         WechatToken wechatToken = wechatTokenMapper.selectOne(null);
         String access_token = "";
-        if (wechatToken == null) {
-            WechatToken token = getToken();
-            access_token = token.getAccessToken();
-            wechatTokenMapper.insert(token);
-        } else {
-            Date now = new Date();
-            Date expire = new Date(wechatToken.getStartTime().getTime() + wechatToken.getExpiresIn() * 1000);
-            if (now.compareTo(expire) != -1) {
+        try {
+            if (wechatToken == null) {
                 WechatToken token = getToken();
                 access_token = token.getAccessToken();
-                wechatTokenMapper.update(token, null);
+                wechatTokenMapper.insert(token);
             } else {
-                access_token = wechatToken.getAccessToken();
+                Date now = new Date();
+                Date expire = new Date(wechatToken.getStartTime().getTime() + wechatToken.getExpiresIn() * 1000);
+                if (now.compareTo(expire) != -1) {
+                    WechatToken token = getToken();
+                    access_token = token.getAccessToken();
+                    wechatTokenMapper.update(token, null);
+                } else {
+                    access_token = wechatToken.getAccessToken();
+                }
             }
+            log.info("获取有效的access_token完成...");
+        } catch (Exception e) {
+            log.error("获取access_token失败：", e);
         }
-        log.info("获取有效的access_token完成...");
         return access_token;
     }
 

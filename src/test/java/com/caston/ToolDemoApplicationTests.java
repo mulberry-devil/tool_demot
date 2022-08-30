@@ -4,16 +4,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.annotation.DbType;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.generator.AutoGenerator;
 import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
 import com.baomidou.mybatisplus.generator.config.GlobalConfig;
 import com.baomidou.mybatisplus.generator.config.PackageConfig;
 import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
-import com.caston.send_mail.enums.ALiOSSEnum;
 import com.caston.wechat.entity.Content;
-import com.caston.wechat.entity.WechatNote;
+import com.caston.wechat.entity.MessageMap;
 import com.caston.wechat.entity.WechatToken;
 import com.caston.wechat.enums.WeChatEnum;
 import com.caston.wechat.service.WechatTokenService;
@@ -21,7 +19,6 @@ import org.apache.shiro.crypto.hash.Md5Hash;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -35,7 +32,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SpringBootTest
@@ -133,10 +129,15 @@ class ToolDemoApplicationTests {
 
     @Test
     void test3() {
-        ALiOSSEnum.ENDPOINT.setAliField("aaaaa");
-        ALiOSSEnum.ACCESSKEYID.setAliField("bbbbb");
-        ALiOSSEnum.ACCESSKEYSECRET.setAliField("ccccc");
-        System.out.println(ALiOSSEnum.ENDPOINT.getAliField());
+        // ALiOSSEnum.ENDPOINT.setAliField("aaaaa");
+        // ALiOSSEnum.ACCESSKEYID.setAliField("bbbbb");
+        // ALiOSSEnum.ACCESSKEYSECRET.setAliField("ccccc");
+        // System.out.println(ALiOSSEnum.ENDPOINT.getAliField());
+        // Map<String, String> build = new MessageMap.Builder().put("aaa", "aaa").put("bbb", "bbb").build();
+        // System.out.println(build);
+
+        // Map<String, String> build1 = new MessageMap.Builder().put("ccc", "ccc").put("ddd", "ddd").build();
+        // System.out.println(build1);
     }
 
     @Autowired

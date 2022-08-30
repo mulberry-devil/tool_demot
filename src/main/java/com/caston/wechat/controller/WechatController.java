@@ -1,7 +1,6 @@
 package com.caston.wechat.controller;
 
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.caston.wechat.entity.Content;
@@ -10,7 +9,6 @@ import com.caston.wechat.entity.WechatUser;
 import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
 import com.caston.wechat.service.WechatUserService;
-import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,11 +41,15 @@ public class WechatController {
     @PostMapping("/send")
     public void send() {
         wechatUserService.list().stream().forEach(i -> {
-            log.info("开始给{}推送模板消息", i.getUserName());
-            Map<String, Content> weather = wechatService.getWeather(i);
-            String accessToken = wechatService.getAccessToken(i);
-            wechatService.send(i, accessToken, weather);
-            log.info("完成给{}推送模板消息", i.getUserName());
+            try {
+                log.info("开始给{}推送模板消息", i.getUserName());
+                Map<String, Content> weather = wechatService.getWeather(i);
+                String accessToken = wechatService.getAccessToken(i);
+                wechatService.send(i, accessToken, weather);
+                log.info("完成给{}推送模板消息", i.getUserName());
+            } catch (Exception e) {
+                log.error("给{}推送模板消息失败", i.getUserName(), e);
+            }
         });
     }
 
