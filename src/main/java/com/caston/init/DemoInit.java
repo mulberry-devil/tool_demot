@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -29,6 +31,7 @@ import javax.annotation.PostConstruct;
 public class DemoInit {
 
     private static final Logger log = LoggerFactory.getLogger(DemoInit.class);
+    public static Map<Integer, String> TEMPLATEMAP;
 
     @Autowired
     private HotSearchService hotSearchService;
@@ -62,8 +65,7 @@ public class DemoInit {
             Wechat wechat = wechatService.getOne(new LambdaQueryWrapper<Wechat>().eq(Wechat::getStatus, 1).eq(Wechat::getType, "wechat"));
             WeChatEnum.APPID.setAliField(wechat.getAppid());
             WeChatEnum.APPSECRET.setAliField(wechat.getAppsecret());
-            WechatTemplate template = wechatTemplateService.getOne(new LambdaQueryWrapper<WechatTemplate>().eq(WechatTemplate::getStatue, 1));
-            WeChatEnum.TEMPLATEID.setAliField(template.getTemplateid());
+            TEMPLATEMAP = wechatTemplateService.list().stream().collect(Collectors.toMap(WechatTemplate::getStatue, i -> i.getTemplateid()));
             Wechat wether = wechatService.getOne(new LambdaQueryWrapper<Wechat>().eq(Wechat::getStatus, 1).eq(Wechat::getType, "wether"));
             WeChatEnum.CITY_URL.setAliField(WeChatEnum.CITY_URL.getAliField().replace("MYKEY", wether.getAppsecret()));
             WeChatEnum.WEATHER_URL.setAliField(WeChatEnum.WEATHER_URL.getAliField().replace("MYKEY", wether.getAppsecret()));

@@ -98,11 +98,15 @@ public class HotSearchXxlJob {
     public void sendWechatJobHandler() throws Exception {
         log.info("开始执行微信公众号推送任务");
         wechatUserService.list().stream().forEach(i -> {
-            log.info("开始给{}推送模板消息", i.getUserName());
-            Map<String, Content> weather = wechatService.getWeather(i);
-            String accessToken = wechatService.getAccessToken(i);
-            wechatService.send(i, accessToken, weather);
-            log.info("完成给{}推送模板消息", i.getUserName());
+            try {
+                log.info("开始给{}推送模板消息", i.getUserName());
+                Map<String, Object> msg = wechatService.getWeather(i);
+                String accessToken = wechatService.getAccessToken(i);
+                wechatService.send(i, accessToken, msg);
+                log.info("完成给{}推送模板消息", i.getUserName());
+            }catch (Exception e){
+                log.error("给{}推送模板消息失败", i.getUserName(), e);
+            }
         });
         log.info("微信公众号推送任务结束");
     }

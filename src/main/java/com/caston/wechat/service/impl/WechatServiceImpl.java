@@ -5,12 +5,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.caston.init.DemoInit;
 import com.caston.wechat.controller.WechatController;
 import com.caston.wechat.entity.*;
 import com.caston.wechat.enums.WeChatEnum;
 import com.caston.wechat.exception.WeChatException;
 import com.caston.wechat.mapper.WechatMapper;
 import com.caston.wechat.mapper.WechatNoteMapper;
+import com.caston.wechat.mapper.WechatTemplateMapper;
 import com.caston.wechat.mapper.WechatTokenMapper;
 import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
@@ -53,9 +55,12 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     private WechatTokenMapper wechatTokenMapper;
 
     @Override
-    public Map<String, Content> getWeather(WechatUser wechatUser) {
+    public Map<String, Object> getWeather(WechatUser wechatUser) {
         Boolean isOk = true;
-        Map<String, Content> sendMag = null;
+        Map<String, Object> msg = new HashMap<>();
+        Map<String, Content> wether_sendMag = null;
+        Map<String, Content> wether_note_sendMag = new HashMap<>();
+        Map<String, Content> note_sendMag = null;
         int errorNum = 5;
         while (isOk) {
             try {
@@ -105,18 +110,28 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
                         String day = String.valueOf((now - birthday) / 24 / 60 / 60 / 1000);
                         WechatNote wechatNote = wechatNoteMapper.selectOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getUserid, wechatUser.getUserId()).eq(WechatNote::getIsnew, 1));
                         log.info("获取{}的天气数据完成，开始封装模板数据...", wechatUser.getRegion());
-                        MessageMap.Builder builder = new MessageMap.Builder();
-                        sendMag = builder.put("fxDate", fxDate, "#f6bec8").put("region", wechatUser.getRegion())
+                        MessageMap.Builder weather_builder = new MessageMap.Builder();
+                        wether_sendMag = weather_builder.put("fxDate", fxDate, "#f6bec8").put("region", wechatUser.getRegion())
                                 .put("textDay", textDay).put("textNight", textNight)
                                 .put("temp", temp).put("tempMax", tempMax)
                                 .put("tempMin", tempMin).put("windDirDay", windDirDay)
                                 .put("windScaleDay", windScaleDay).put("windSpeedDay", windSpeedDay)
                                 .put("windDirNight", windDirNight).put("windScaleNight", windScaleNight)
                                 .put("windSpeedNight", windSpeedNight).put("uvIndex", uvIndex).put("vis", vis)
-                                .put("text", stringBuilder.toString()).put("day", day, "#eeb8c3")
+                                .put("day", day, "#eeb8c3")
                                 .put("note", wechatNote == null ? "无" : wechatNote.getNote().replace(";", "\n").replace("；", "\n"), "#f8df72").build();
+                        wether_note_sendMag.put("text", new Content(stringBuilder.toString()));
+                        if (wechatNote != null) {
+                            note_sendMag = new HashMap<>();
+                            note_sendMag.put("note", new Content(wechatNote.getNote().replace(";", "\n").replace("；", "\n"), "#f8df72"));
+                        }
                         log.info("封装模板数据完成...");
                     }
+                }
+                msg.put("1", wether_sendMag);
+                msg.put("2", wether_note_sendMag);
+                if (note_sendMag != null) {
+                    msg.put("3", note_sendMag);
                 }
                 isOk = false;
             } catch (Exception e) {
@@ -127,7 +142,7 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
                 }
             }
         }
-        return sendMag;
+        return msg;
     }
 
     @Override
@@ -159,19 +174,37 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     }
 
     @Override
-    public void send(WechatUser wechatUser, String accessToken, Map<String, Content> weather) {
+    public void send(WechatUser wechatUser, String accessToken, Map<String, Object> msg) {
         try {
             log.info("开始推送微信模板给用户...");
             String url = WeChatEnum.SEND_URL.getAliField().replace("ACCESS_TOKEN", accessToken);
             Map<String, Object> sendBody = new HashMap<>();
             sendBody.put("touser", wechatUser.getUserId());
             sendBody.put("topcolor", "#FF0000");
-            sendBody.put("data", weather);
+            // 天气情况 1
+            WeChatEnum.TEMPLATEID.setAliField(DemoInit.TEMPLATEMAP.get(1));
+            sendBody.put("data", msg.get("1"));
             sendBody.put("template_id", WeChatEnum.TEMPLATEID.getAliField());
             ResponseEntity<String> forEntity = restTemplate.postForEntity(url, sendBody, String.class);
             JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
             log.info("推送结果：{}", jsonObject);
-            wechatNoteMapper.update(null, new LambdaUpdateWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, wechatUser.getUserId()).set(WechatNote::getIsnew, 0));
+            // 天气温馨提醒 2
+            WeChatEnum.TEMPLATEID.setAliField(DemoInit.TEMPLATEMAP.get(2));
+            sendBody.replace("data", msg.get("2"));
+            sendBody.replace("template_id", WeChatEnum.TEMPLATEID.getAliField());
+            forEntity = restTemplate.postForEntity(url, sendBody, String.class);
+            jsonObject = JSONObject.parseObject(forEntity.getBody());
+            log.info("推送结果：{}", jsonObject);
+            // 重要提醒 3
+            if (msg.size() > 2) {
+                WeChatEnum.TEMPLATEID.setAliField(DemoInit.TEMPLATEMAP.get(3));
+                sendBody.put("data", msg.get("3"));
+                sendBody.put("template_id", WeChatEnum.TEMPLATEID.getAliField());
+                forEntity = restTemplate.postForEntity(url, sendBody, String.class);
+                jsonObject = JSONObject.parseObject(forEntity.getBody());
+                log.info("推送结果：{}", jsonObject);
+                wechatNoteMapper.update(null, new LambdaUpdateWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, wechatUser.getUserId()).set(WechatNote::getIsnew, 0));
+            }
         } catch (Exception e) {
             log.error("推送微信模板给用户失败：", e);
         }

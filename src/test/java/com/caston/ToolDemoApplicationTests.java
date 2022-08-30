@@ -135,9 +135,13 @@ class ToolDemoApplicationTests {
         // System.out.println(ALiOSSEnum.ENDPOINT.getAliField());
         // Map<String, String> build = new MessageMap.Builder().put("aaa", "aaa").put("bbb", "bbb").build();
         // System.out.println(build);
-
+        //
         // Map<String, String> build1 = new MessageMap.Builder().put("ccc", "ccc").put("ddd", "ddd").build();
         // System.out.println(build1);
+        MessageMap.Builder builder = new MessageMap.Builder();
+        Map<String, Content> build = builder.put("aaaa", "aaa").put("bbb", "bbbb").build();
+        Map<String, Content> build1 = builder.put("ccc", "ccc").put("ddd", "dddd").build();
+        System.out.println();
     }
 
     @Autowired
