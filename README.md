@@ -41,3 +41,14 @@
 - Redis
 - xxl-job
 - RestTemplate
+
+## 向公众号推送模板消息
+
+向所有已关注用户推送模板到公众号
+
+- 运行后访问`http://localhost:8080/swagger-ui/`
+
+### 主要使用技术点
+
+- RestTemplate
+- xxl-job
