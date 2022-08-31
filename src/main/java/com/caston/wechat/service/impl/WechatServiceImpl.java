@@ -99,10 +99,12 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
                         String vis = daily.getString("vis");
                         String temp = weather_now_json.getJSONObject("now").getString("temp");
                         StringBuilder stringBuilder = new StringBuilder();
-                        text_json.getJSONArray("daily").forEach(j -> {
+                        JSONArray text_total = text_json.getJSONArray("daily");
+                        int k = 1;
+                        for (Object j : text_total) {
                             JSONObject json = (JSONObject) j;
-                            stringBuilder.append(json.getString("text") + "\n");
-                        });
+                            stringBuilder.append(k++ + ". " + json.getString("text") + "\n");
+                        }
                         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                         long now = 0;
                         now = formatter.parse(formatter.format(new Date()).split(" ")[0]).getTime();
