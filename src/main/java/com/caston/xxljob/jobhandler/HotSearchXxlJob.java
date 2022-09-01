@@ -42,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class HotSearchXxlJob {
     private static final Logger log = LoggerFactory.getLogger(HotSearchXxlJob.class);
-    private static final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
     @Autowired
     private HotSearchService hotSearchService;
@@ -62,67 +61,61 @@ public class HotSearchXxlJob {
      */
     @XxlJob("hotSearchJobHandler")
     public void hotSearchJobHandler() throws Exception {
-        threadPoolExecutor.execute(() -> {
-            XxlJobHelper.log("XXL-JOB, start update redis.");
-            log.info("开始更新redis中数据");
-            String jobParam = XxlJobHelper.getJobParam();
-            JSONObject jsonObject = JSONObject.parseObject(jobParam);
-            jsonObject.forEach((i, j) -> {
-                hotSearchService.addHotSearch(i, (String) j);
-            });
+        XxlJobHelper.log("XXL-JOB, start update redis.");
+        log.info("开始更新redis中数据");
+        String jobParam = XxlJobHelper.getJobParam();
+        JSONObject jsonObject = JSONObject.parseObject(jobParam);
+        jsonObject.forEach((i, j) -> {
+            hotSearchService.addHotSearch(i, (String) j);
         });
     }
 
     @XxlJob("dealDeadMailJobHandler")
     public void dealDeadMailJobHandler() {
-        threadPoolExecutor.execute(() -> {
-            log.info("开始执行邮件发送失败重试任务");
-            OSS oss = new OSSClientBuilder().build(ALiOSSEnum.ENDPOINT.getAliField(), ALiOSSEnum.ACCESSKEYID.getAliField(), ALiOSSEnum.ACCESSKEYSECRET.getAliField());
-            List<MailVo> mailVos = mailVoService.list();
-            for (MailVo mailVo : mailVos) {
-                List<Map<String, Object>> list = new ArrayList<>();
-                String filesStr = mailVo.getFilesStr();
-                String[] filenames = filesStr.split(",");
-                for (String filename : filenames) {
-                    Map<String, Object> map = new HashMap<>();
-                    InputStream inputStream = oss.getObject(bucketName, filename).getObjectContent();
-                    byte[] fileByte = new byte[0];
-                    try {
-                        fileByte = IOUtils.toByteArray(inputStream);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    map.put("fileName", filename);
-                    map.put("fileByte", Base64.encodeBase64String(fileByte));
-                    list.add(list.size(), map);
-                    oss.deleteObject(bucketName, filename);
-                    log.info("删除阿里云oss中文件（{}）", filename);
+        log.info("开始执行邮件发送失败重试任务");
+        OSS oss = new OSSClientBuilder().build(ALiOSSEnum.ENDPOINT.getAliField(), ALiOSSEnum.ACCESSKEYID.getAliField(), ALiOSSEnum.ACCESSKEYSECRET.getAliField());
+        List<MailVo> mailVos = mailVoService.list();
+        for (MailVo mailVo : mailVos) {
+            List<Map<String, Object>> list = new ArrayList<>();
+            String filesStr = mailVo.getFilesStr();
+            String[] filenames = filesStr.split(",");
+            for (String filename : filenames) {
+                Map<String, Object> map = new HashMap<>();
+                InputStream inputStream = oss.getObject(bucketName, filename).getObjectContent();
+                byte[] fileByte = new byte[0];
+                try {
+                    fileByte = IOUtils.toByteArray(inputStream);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                String fileMapStr = JSONObject.toJSONString(list);
-                mailVoService.remove(new QueryWrapper<MailVo>().lambda().eq(MailVo::getFilesStr, filesStr));
-                log.info("删除数据库中数据{}", mailVo);
-                mailVo.setFilesStr(fileMapStr);
-                mailProduce.sendQue(mailVo);
+                map.put("fileName", filename);
+                map.put("fileByte", Base64.encodeBase64String(fileByte));
+                list.add(list.size(), map);
+                oss.deleteObject(bucketName, filename);
+                log.info("删除阿里云oss中文件（{}）", filename);
             }
-        });
+            String fileMapStr = JSONObject.toJSONString(list);
+            mailVoService.remove(new QueryWrapper<MailVo>().lambda().eq(MailVo::getFilesStr, filesStr));
+            log.info("删除数据库中数据{}", mailVo);
+            mailVo.setFilesStr(fileMapStr);
+            mailProduce.sendQue(mailVo);
+        }
     }
 
     @XxlJob("sendWechatJobHandler")
     public void sendWechatJobHandler() throws Exception {
-        threadPoolExecutor.execute(() -> {
-            log.info("开始执行微信公众号推送任务");
-            wechatUserService.list().stream().forEach(i -> {
-                try {
-                    log.info("开始给{}推送模板消息", i.getUserName());
-                    Map<String, Object> msg = wechatService.getWeather(i);
-                    String accessToken = wechatService.getAccessToken(i);
-                    wechatService.send(i, accessToken, msg);
-                    log.info("完成给{}推送模板消息", i.getUserName());
-                } catch (Exception e) {
-                    log.error("给{}推送模板消息失败", i.getUserName(), e);
-                }
-            });
-            log.info("微信公众号推送任务结束");
+        log.info("开始执行微信公众号推送任务");
+        wechatUserService.list().stream().forEach(i -> {
+            try {
+                log.info("开始给{}推送模板消息", i.getUserName());
+                Map<String, Object> msg = wechatService.getWeather(i);
+                String accessToken = wechatService.getAccessToken(i);
+                wechatService.send(i, accessToken, msg);
+                log.info("完成给{}推送模板消息", i.getUserName());
+            } catch (Exception e) {
+                log.error("给{}推送模板消息失败", i.getUserName(), e);
+            }
         });
+        log.info("微信公众号推送任务结束");
     }
 }

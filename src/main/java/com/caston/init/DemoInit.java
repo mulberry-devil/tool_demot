@@ -51,11 +51,11 @@ public class DemoInit {
         ALiOSSEnum.ACCESSKEYSECRET.setAliField(alioss.getAccesskeysecret());
         log.info("开始初始化热点数据......");
         try {
-            hotSearchService.addHotSearchInit("weibo", "https://tenapi.cn/resou/");
-            hotSearchService.addHotSearchInit("zhihu", "https://tenapi.cn/zhihuresou/");
-            hotSearchService.addHotSearchInit("douyin", "https://tenapi.cn/douyinresou/");
-            hotSearchService.addHotSearchInit("blibli", "https://tenapi.cn/bilihot/");
-            hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
+            // hotSearchService.addHotSearchInit("weibo", "https://tenapi.cn/resou/");
+            // hotSearchService.addHotSearchInit("zhihu", "https://tenapi.cn/zhihuresou/");
+            // hotSearchService.addHotSearchInit("douyin", "https://tenapi.cn/douyinresou/");
+            // hotSearchService.addHotSearchInit("blibli", "https://tenapi.cn/bilihot/");
+            // hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
             log.info("热点数据初始化结束......");
         } catch (Exception e) {
             log.error("初始化数据发生异常：", e);
