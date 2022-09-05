@@ -15,6 +15,8 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
+
 @Configuration
 public class HotSearchConfig {
 
@@ -23,7 +25,9 @@ public class HotSearchConfig {
 
     @Bean
     public RestTemplate restTemplate() {
-        return builder.build();
+        return builder
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(5)).build();
     }
 
     /**

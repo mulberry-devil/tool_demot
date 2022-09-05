@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.generator.AutoGenerator;
 import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
 import com.baomidou.mybatisplus.generator.config.GlobalConfig;
@@ -12,6 +13,7 @@ import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.caston.wechat.entity.Content;
 import com.caston.wechat.entity.MessageMap;
+import com.caston.wechat.entity.WechatNote;
 import com.caston.wechat.entity.WechatToken;
 import com.caston.wechat.enums.WeChatEnum;
 import com.caston.wechat.service.WechatTokenService;
@@ -32,6 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SpringBootTest
@@ -59,12 +62,12 @@ class ToolDemoApplicationTests {
         mpg.setDataSource(dsc);
 // 4、包配置
         PackageConfig pc = new PackageConfig();
-        pc.setParent("com.caston.send_mail");
+        pc.setParent("com.caston.netdisc");
         pc.setEntity("entity"); //此对象与数据库表结构一一对应，通过 DAO 层向上传输数据源对象。
         mpg.setPackageInfo(pc);
 // 5、策略配置
         StrategyConfig strategy = new StrategyConfig();
-        strategy.setInclude(new String[]{"alioss"});//指定表
+        strategy.setInclude(new String[]{"file"});//指定表
         strategy.setNaming(NamingStrategy.underline_to_camel);//数据库表映射到实体的命名策略
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);//数据库表字段映射到实体的命名策略
         strategy.setEntityLombokModel(true); // lombok
@@ -285,6 +288,47 @@ class ToolDemoApplicationTests {
                 sendMag.put("note", new Content(stringBuilder.toString()));
             }
         });
+    }
+
+    @Test
+    void test6() {
+        String city_url = WeChatEnum.CITY_URL.getAliField().replace("REGION", "从化");
+        ResponseEntity<String> city = restTemplate.getForEntity(city_url, String.class);
+        JSONObject city_json = JSONObject.parseObject(city.getBody());
+        JSONArray location = city_json.getJSONArray("location");
+        String id = location.getJSONObject(0).getString("id");
+        String weather_url = WeChatEnum.WEATHER_URL.getAliField().replace("TYPE", "3d").replace("CITYID", id);
+        ResponseEntity<String> weather = restTemplate.getForEntity(weather_url, String.class);
+        JSONObject weather_json = JSONObject.parseObject(weather.getBody());
+        String weather_now_url = WeChatEnum.WEATHER_URL.getAliField().replace("TYPE", "now").replace("CITYID", id);
+        ResponseEntity<String> weather_now = restTemplate.getForEntity(weather_now_url, String.class);
+        JSONObject weather_now_json = JSONObject.parseObject(weather_now.getBody());
+        String text_url = WeChatEnum.TEXT_URL.getAliField().replace("CITYID", id);
+        ResponseEntity<String> text = restTemplate.getForEntity(text_url, String.class);
+        JSONObject text_json = JSONObject.parseObject(text.getBody());
+        JSONObject daily = weather_json.getJSONArray("daily").getJSONObject(0);
+        String fxDate = daily.getString("fxDate");
+        String textDay = daily.getString("textDay");
+        String textNight = daily.getString("textNight");
+        String tempMax = daily.getString("tempMax");
+        String tempMin = daily.getString("tempMin");
+        String windDirDay = daily.getString("windDirDay");
+        String windScaleDay = daily.getString("windScaleDay");
+        String windSpeedDay = daily.getString("windSpeedDay");
+        String windDirNight = daily.getString("windDirNight");
+        String windScaleNight = daily.getString("windScaleNight");
+        String windSpeedNight = daily.getString("windSpeedNight");
+        String uvIndex = daily.getString("uvIndex");
+        String vis = daily.getString("vis");
+        String temp = weather_now_json.getJSONObject("now").getString("temp");
+        StringBuilder stringBuilder = new StringBuilder();
+        JSONArray text_total = text_json.getJSONArray("daily");
+        int k = 1;
+        for (Object j : text_total) {
+            JSONObject json = (JSONObject) j;
+            stringBuilder.append(k++ + ". " + json.getString("text") + "\n");
+        }
+        System.out.println();
     }
 }
 

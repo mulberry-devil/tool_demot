@@ -110,7 +110,7 @@ public class HotSearchXxlJob {
                 log.info("开始给{}推送模板消息", i.getUserName());
                 Map<String, Object> msg = wechatService.getWeather(i);
                 String accessToken = wechatService.getAccessToken(i);
-                wechatService.send(i, accessToken, msg);
+                // wechatService.send(i, accessToken, msg);
                 log.info("完成给{}推送模板消息", i.getUserName());
             } catch (Exception e) {
                 log.error("给{}推送模板消息失败", i.getUserName(), e);

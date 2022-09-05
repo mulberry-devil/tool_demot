@@ -25,6 +25,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.DateFormat;
@@ -55,6 +56,7 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     private WechatTokenMapper wechatTokenMapper;
 
     @Override
+    @Transactional
     public Map<String, Object> getWeather(WechatUser wechatUser) {
         Boolean isOk = true;
         Map<String, Object> msg = new HashMap<>();
@@ -148,6 +150,7 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     }
 
     @Override
+    @Transactional
     public String getAccessToken(WechatUser wechatUser) {
         log.info("开始获取有效的access_token...");
         WechatToken wechatToken = wechatTokenMapper.selectOne(null);
@@ -176,6 +179,7 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     }
 
     @Override
+    @Transactional
     public void send(WechatUser wechatUser, String accessToken, Map<String, Object> msg) {
         try {
             log.info("开始推送微信模板给用户...");

@@ -56,5 +56,14 @@ xxl:
       logpath: E:\eclipse-workspace\tool_demo\log
       logretentiondays: 30
 
+fdfs:
+  so-timeout: 1501
+  connect-timeout: 601
+  thumb-image:
+    width: 150
+    height: 150
+  tracker-list:
+    - 172.23.11.200:22122
+
 logging:
   config: classpath:logback.xml
