@@ -17,6 +17,7 @@ import com.caston.wechat.mapper.WechatTokenMapper;
 import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.caston.wechat.utils.WeChatUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +29,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -213,6 +217,19 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
             }
         } catch (Exception e) {
             log.error("推送微信模板给用户失败：", e);
+        }
+    }
+
+    @Override
+    public String wxSignatureCheck(String signature, String timestamp, String nonce, String echostr) {
+        String wxSignatureSort = WeChatUtil.wxSignatureSort(WeChatEnum.WECHAT_SIGNATURE.getAliField(), timestamp, nonce);
+        String myToken = WeChatUtil.wxSignatureSHA1(wxSignatureSort);
+        if (myToken != null && myToken != "" && myToken.equals(signature)) {
+            log.info("签名校验通过...");
+            return echostr; //如果检验成功输出echostr，微信服务器接收到此输出，才会确认检验完成。
+        } else {
+            log.info("签名校验失败...");
+            return null;
         }
     }
 

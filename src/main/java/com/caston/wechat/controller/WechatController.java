@@ -4,17 +4,35 @@ package com.caston.wechat.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.caston.wechat.entity.Content;
+import com.caston.wechat.entity.RespMessage_Text;
 import com.caston.wechat.entity.WechatNote;
 import com.caston.wechat.entity.WechatUser;
 import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
 import com.caston.wechat.service.WechatUserService;
+import com.caston.wechat.utils.WeChatUtil;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.core.util.QuickWriter;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
+import com.thoughtworks.xstream.io.xml.XppDriver;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -69,6 +87,60 @@ public class WechatController {
     @PostMapping("/addUser")
     public void addUser(@RequestBody WechatUser wechatUser) {
         wechatUserService.save(wechatUser);
+    }
+
+    @GetMapping("messageHandle")
+    public String wxSignatureCheck(
+            @RequestParam(value = "signature") String signature,
+            @RequestParam(value = "timestamp") String timestamp,
+            @RequestParam(value = "nonce") String nonce,
+            @RequestParam(value = "echostr") String echostr) {
+        return wechatService.wxSignatureCheck(signature, timestamp, nonce, echostr);
+    }
+
+    @PostMapping("messageHandle")
+    public void messageHandle(HttpServletRequest request, HttpServletResponse response) {
+        PrintWriter out = null;
+        try {
+            log.info("开始处理公众号接收到的消息...");
+            Map<String, String> map = WeChatUtil.xml2MapFromStream(request.getInputStream());
+            String msgType = map.get("MsgType");
+            if ("text".equals(msgType)) {
+                String content = map.get("Content");
+                String[] split = content.split("：|:");
+                if (split.length > 1 && "提醒".equals(split[0])) {
+                    String userId = map.get("FromUserName");
+                    WechatNote wechatNote = wechatNoteService.getOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, userId));
+                    if (wechatNote != null) {
+                        wechatNoteService.update(null, new LambdaUpdateWrapper<WechatNote>()
+                                .eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, userId)
+                                .set(WechatNote::getNote, split[1]).set(WechatNote::getNoteDate, new Date()));
+                    } else {
+                        wechatNoteService.save(new WechatNote(userId, split[1], new Date(), 1));
+                    }
+                    log.info("发送确认消息给公众号...");
+                    response.setCharacterEncoding("UTF-8");
+                    RespMessage_Text responseText = new RespMessage_Text();
+                    responseText.setFromUserName(map.get("ToUserName"));
+                    responseText.setToUserName(map.get("FromUserName"));
+                    responseText.setMsgType("text");
+                    responseText.setCreateTime(new Date().getTime());
+                    //设置返回内容
+                    responseText.setContent("增加提醒成功,提醒内容为：" + split[1]);
+                    String resqXml = WeChatUtil.messageToXml(responseText);
+                    //响应消息
+                    out = response.getWriter();
+                    out.print(resqXml);
+                }
+            }
+            log.info("公众号消息处理完成...");
+        } catch (Exception e) {
+            log.error("公众号消息处理出现异常：", e);
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+        }
     }
 }
 

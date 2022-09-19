@@ -21,4 +21,6 @@ public interface WechatService extends IService<Wechat> {
     public String getAccessToken(WechatUser wechatUser);
 
     public void send(WechatUser wechatUser,String accessToken,Map<String, Object> msg);
+
+    public String wxSignatureCheck(String signature, String timestamp, String nonce, String echostr);
 }
