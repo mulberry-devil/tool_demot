@@ -1,12 +1,11 @@
 spring:
   rabbitmq:
-    addresses: 127.0.0.1
+    addresses: 172.23.11.200
     port: 5672
-    username: guest
-    password: guest
+    username: qs
+    password: 123123
   redis:
-    host: 127.0.0.1
-    password: tool_redis
+    host: 172.23.11.200
     lettuce:
       pool:
         max-idle: 10
@@ -20,10 +19,10 @@ spring:
   datasource:
     druid:
       name: base_spring_boot
-      url: jdbc:mysql://127.0.0.1:3306/tool?serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+      url: jdbc:mysql://localhost:3306/tooldb?serverTimezone=Asia/Shanghai&characterEncoding=utf-8
       driver-class-name: com.mysql.cj.jdbc.Driver
-      username: tool_root
-      password: ysn2jKccjyL4yYnH
+      username: root
+      password: macroview
       filters: stat # 监控统计
       initial-size: 2 # 初始化连接
       min-idle: 1 # 最小空闲连接数
@@ -54,7 +53,7 @@ xxl:
       address:
       ip:
       port: 9989
-      logpath: /var/log/tool_demo
+      logpath: E:\eclipse-workspace\tool_demo\log
       logretentiondays: 30
 
 fdfs:
@@ -64,8 +63,8 @@ fdfs:
     width: 150
     height: 150
   tracker-list:
-    - 127.0.0.1:22122
+    - 172.23.11.200:22122
 
 logging:
   config: classpath:logback-spring.xml
-logs: /data/applogs
+logs: /var/logs
