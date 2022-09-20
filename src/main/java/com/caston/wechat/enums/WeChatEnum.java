@@ -12,7 +12,8 @@ public enum WeChatEnum {
     WEATHER_URL("https://devapi.qweather.com/v7/weather/TYPE?location=CITYID&key=MYKEY"),
     TEXT_URL("https://devapi.qweather.com/v7/indices/1d?location=CITYID&key=MYKEY&type=3,5,6,13,16"),
     ACCESS_TOKEN_URL("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET"),
-    SEND_URL("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=ACCESS_TOKEN");
+    SEND_URL("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=ACCESS_TOKEN"),
+    WECHAT_SIGNATURE("wechat_caston");
     private String aliField;
     public String getAliField(){
         return aliField;

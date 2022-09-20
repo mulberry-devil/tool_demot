@@ -47,6 +47,7 @@ public class ShiroConfig {
         map.put("/swagger-resources/**", "anon");
         map.put("/v3/**", "anon");
         map.put("/webjars/**", "anon");
+        map.put("/wechat/messageHandle", "anon");
         map.put("/account/test/**", "rolesOr[manager,user]");
         map.put("/**", "authc");// 需要认证才能进入
 //        map.put("/account/perms/**","perms[manager]");// 配置什么权限能访问的

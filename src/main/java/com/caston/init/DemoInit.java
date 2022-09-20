@@ -40,7 +40,7 @@ public class DemoInit {
     @Autowired
     private WechatService wechatService;
     @Autowired
-    WechatTemplateService wechatTemplateService;
+    private WechatTemplateService wechatTemplateService;
 
     @PostConstruct
     public void init() {

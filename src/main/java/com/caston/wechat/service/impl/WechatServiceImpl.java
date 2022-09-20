@@ -17,6 +17,7 @@ import com.caston.wechat.mapper.WechatTokenMapper;
 import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.caston.wechat.utils.WeChatUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +29,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -188,31 +194,55 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
             sendBody.put("touser", wechatUser.getUserId());
             sendBody.put("topcolor", "#FF0000");
             // 天气情况 1
-            WeChatEnum.TEMPLATEID.setAliField(DemoInit.TEMPLATEMAP.get(1));
-            sendBody.put("data", msg.get("1"));
-            sendBody.put("template_id", WeChatEnum.TEMPLATEID.getAliField());
-            ResponseEntity<String> forEntity = restTemplate.postForEntity(url, sendBody, String.class);
-            JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
-            log.info("推送结果：{}", jsonObject);
+            sendMessage(sendBody, msg, url, 1, true);
             // 天气温馨提醒 2
-            WeChatEnum.TEMPLATEID.setAliField(DemoInit.TEMPLATEMAP.get(2));
-            sendBody.replace("data", msg.get("2"));
-            sendBody.replace("template_id", WeChatEnum.TEMPLATEID.getAliField());
-            forEntity = restTemplate.postForEntity(url, sendBody, String.class);
-            jsonObject = JSONObject.parseObject(forEntity.getBody());
-            log.info("推送结果：{}", jsonObject);
+            sendMessage(sendBody, msg, url, 2, true);
             // 重要提醒 3
             if (msg.size() > 2) {
-                WeChatEnum.TEMPLATEID.setAliField(DemoInit.TEMPLATEMAP.get(3));
-                sendBody.put("data", msg.get("3"));
-                sendBody.put("template_id", WeChatEnum.TEMPLATEID.getAliField());
-                forEntity = restTemplate.postForEntity(url, sendBody, String.class);
-                jsonObject = JSONObject.parseObject(forEntity.getBody());
-                log.info("推送结果：{}", jsonObject);
+                sendMessage(sendBody, msg, url, 3, true);
                 wechatNoteMapper.update(null, new LambdaUpdateWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, wechatUser.getUserId()).set(WechatNote::getIsnew, 0));
+            } else {
+                sendMessage(sendBody, msg, url, 4, false);
             }
         } catch (Exception e) {
             log.error("推送微信模板给用户失败：", e);
+        }
+    }
+
+    @Override
+    public String wxSignatureCheck(String signature, String timestamp, String nonce, String echostr) {
+        String wxSignatureSort = WeChatUtil.wxSignatureSort(WeChatEnum.WECHAT_SIGNATURE.getAliField(), timestamp, nonce);
+        String myToken = WeChatUtil.wxSignatureSHA1(wxSignatureSort);
+        if (myToken != null && myToken != "" && myToken.equals(signature)) {
+            log.info("签名校验通过...");
+            return echostr; //如果检验成功输出echostr，微信服务器接收到此输出，才会确认检验完成。
+        } else {
+            log.info("签名校验失败...");
+            return null;
+        }
+    }
+
+    @Override
+    public void sendMessage2Wechat(HttpServletResponse response, RespMessage_Text responseText, String toUserName, String userId, StringBuilder builder) {
+        PrintWriter out = null;
+        try {
+            log.info("发送确认消息给公众号...");
+            response.setCharacterEncoding("UTF-8");
+            responseText.setFromUserName(toUserName);
+            responseText.setToUserName(userId);
+            responseText.setMsgType("text");
+            responseText.setCreateTime(new Date().getTime());
+            //设置返回内容
+            String resqXml = WeChatUtil.messageToXml(responseText);
+            //响应消息
+            out = response.getWriter();
+            out.print(resqXml);
+        } catch (Exception e) {
+            log.error("公众号消息处理出现异常：", e);
+        } finally {
+            if (out != null) {
+                out.close();
+            }
         }
     }
 
@@ -244,5 +274,22 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
             }
         }
         return token;
+    }
+
+    private void sendMessage(Map<String, Object> sendBody, Map<String, Object> msg, String url, Integer id, Boolean haveMsg) {
+        try {
+            WeChatEnum.TEMPLATEID.setAliField(DemoInit.TEMPLATEMAP.get(id));
+            sendBody.put("template_id", WeChatEnum.TEMPLATEID.getAliField());
+            if (haveMsg) {
+                sendBody.put("data", msg.get(id.toString()));
+            } else {
+                sendBody.remove("data");
+            }
+            ResponseEntity<String> forEntity = restTemplate.postForEntity(url, sendBody, String.class);
+            JSONObject jsonObject = JSONObject.parseObject(forEntity.getBody());
+            log.info("推送结果：{}", jsonObject);
+        } catch (Exception e) {
+            log.error("推送微信模板给用户失败：", e);
+        }
     }
 }

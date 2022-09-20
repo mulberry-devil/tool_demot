@@ -33,11 +33,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
-@SpringBootTest
+// @SpringBootTest
 class ToolDemoApplicationTests {
 
     @Test
@@ -54,20 +56,20 @@ class ToolDemoApplicationTests {
         mpg.setGlobalConfig(gc);
 // 3、数据源配置
         DataSourceConfig dsc = new DataSourceConfig();
-        dsc.setUrl("jdbc:mysql://localhost:3306/tooldb?serverTimezone=UTC&characterEncoding=utf-8");
+        dsc.setUrl("jdbc:mysql://175.178.70.91:3306/tool?serverTimezone=UTC&characterEncoding=utf-8");
         dsc.setDriverName("com.mysql.cj.jdbc.Driver");
-        dsc.setUsername("root");
-        dsc.setPassword("macroview");
+        dsc.setUsername("tool_root");
+        dsc.setPassword("ysn2jKccjyL4yYnH");
         dsc.setDbType(DbType.MYSQL);
         mpg.setDataSource(dsc);
 // 4、包配置
         PackageConfig pc = new PackageConfig();
-        pc.setParent("com.caston.netdisc");
+        pc.setParent("com.caston.wechat");
         pc.setEntity("entity"); //此对象与数据库表结构一一对应，通过 DAO 层向上传输数据源对象。
         mpg.setPackageInfo(pc);
 // 5、策略配置
         StrategyConfig strategy = new StrategyConfig();
-        strategy.setInclude(new String[]{"file"});//指定表
+        strategy.setInclude(new String[]{"wechat_message"});//指定表
         strategy.setNaming(NamingStrategy.underline_to_camel);//数据库表映射到实体的命名策略
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);//数据库表字段映射到实体的命名策略
         strategy.setEntityLombokModel(true); // lombok
@@ -329,6 +331,12 @@ class ToolDemoApplicationTests {
             stringBuilder.append(k++ + ". " + json.getString("text") + "\n");
         }
         System.out.println();
+    }
+
+    @Test
+    void test7(){
+        Timestamp timestamp = Timestamp.valueOf("1348831860");
+        System.out.println(timestamp.getTime());
     }
 }
 
