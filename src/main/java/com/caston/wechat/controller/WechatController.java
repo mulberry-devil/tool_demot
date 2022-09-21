@@ -3,20 +3,13 @@ package com.caston.wechat.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.caston.common.result.Response;
 import com.caston.wechat.entity.*;
 import com.caston.wechat.service.WechatMessageService;
 import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
 import com.caston.wechat.service.WechatUserService;
 import com.caston.wechat.utils.WeChatUtil;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.core.util.QuickWriter;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
-import com.thoughtworks.xstream.io.xml.XppDriver;
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -59,7 +43,8 @@ public class WechatController {
     private WechatMessageService messageService;
 
     @PostMapping("/send")
-    public void send() {
+    public Response send() {
+        List<WechatUser> list = new ArrayList<>();
         wechatUserService.list().stream().forEach(i -> {
             try {
                 log.info("开始给{}推送模板消息", i.getUserName());
@@ -71,10 +56,14 @@ public class WechatController {
                 log.error("给{}推送模板消息失败", i.getUserName(), e);
             }
         });
+        if (list.size() != 0) {
+            return Response.success(list).message("有用户推送失败");
+        }
+        return Response.success();
     }
 
     @PostMapping("/addNote")
-    public void addNote(@RequestParam String userName, @RequestParam String note) {
+    public Response addNote(@RequestParam String userName, @RequestParam String note) {
         String userId = wechatUserService.getOne(new LambdaQueryWrapper<WechatUser>().eq(WechatUser::getUserName, userName)).getUserId();
         WechatNote wechatNote = wechatNoteService.getOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, userId));
         if (wechatNote != null) {
@@ -84,11 +73,13 @@ public class WechatController {
         } else {
             wechatNoteService.save(new WechatNote(userId, note, new Date(), 1));
         }
+        return Response.success();
     }
 
     @PostMapping("/addUser")
-    public void addUser(@RequestBody WechatUser wechatUser) {
+    public Response addUser(@RequestBody WechatUser wechatUser) {
         wechatUserService.save(wechatUser);
+        return Response.success();
     }
 
     @GetMapping("messageHandle")
@@ -101,7 +92,7 @@ public class WechatController {
     }
 
     @PostMapping("messageHandle")
-    public void messageHandle(HttpServletRequest request, HttpServletResponse response) {
+    public Response messageHandle(HttpServletRequest request, HttpServletResponse response) {
         try {
             log.info("开始处理公众号接收到的消息...");
             Map<String, String> map = WeChatUtil.xml2MapFromStream(request.getInputStream());
@@ -131,7 +122,7 @@ public class WechatController {
                 } else if (split.length > 1 && "追加提醒".equals(split[0])) {
                     WechatNote wechatNote = wechatNoteService.getOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, userId));
                     if (wechatNote != null) {
-                        builder = new StringBuilder(wechatNote.getNote()+";");
+                        builder = new StringBuilder(wechatNote.getNote() + ";");
                         builder.append(split[1]);
                         wechatNoteService.update(null, new LambdaUpdateWrapper<WechatNote>()
                                 .eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, userId)
@@ -147,8 +138,10 @@ public class WechatController {
                 }
             }
             log.info("公众号消息处理完成...");
+            return Response.success();
         } catch (Exception e) {
             log.error("公众号消息处理出现异常：", e);
+            return Response.error();
         }
     }
 }

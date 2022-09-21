@@ -1,5 +1,6 @@
 package com.caston.hot_search.controller;
 
+import com.caston.common.result.Response;
 import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,18 +21,18 @@ public class HotSearchController {
     private RedisTemplate redisTemplate;
 
     @GetMapping("/")
-    public Map<String, Object> hotSearch() {
+    public Response hotSearch() {
         HashMap<String, Object> map = new HashMap<>();
         Object weibo = redisTemplate.opsForValue().get("weibo");
         Object zhihu = redisTemplate.opsForValue().get("zhihu");
         Object douyin = redisTemplate.opsForValue().get("douyin");
         Object blibli = redisTemplate.opsForValue().get("blibli");
         Object baidu = redisTemplate.opsForValue().get("baidu");
-        map.put("微博",weibo);
-        map.put("知乎",zhihu);
-        map.put("抖音",douyin);
-        map.put("B站",blibli);
-        map.put("百度",baidu);
-        return map;
+        map.put("微博", weibo);
+        map.put("知乎", zhihu);
+        map.put("抖音", douyin);
+        map.put("B站", blibli);
+        map.put("百度", baidu);
+        return Response.success(map);
     }
 }

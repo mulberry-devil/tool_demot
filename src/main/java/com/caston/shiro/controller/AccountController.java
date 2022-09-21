@@ -1,6 +1,7 @@
 package com.caston.shiro.controller;
 
 
+import com.caston.common.result.Response;
 import com.caston.shiro.entity.Account;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AccountController {
 
     @PostMapping("/login")
-    public String login(String username, String password) {
+    public Response login(String username, String password) {
         Subject subject = SecurityUtils.getSubject();
         UsernamePasswordToken token = new UsernamePasswordToken(username, password);
         try {
@@ -36,9 +37,9 @@ public class AccountController {
             subject.getSession().setAttribute("account", account);
         } catch (Exception e) {
             e.printStackTrace();
-            return "登录失败";
+            return Response.error().message("登录失败");
         }
-        return "登录成功";
+        return Response.success().message("登录成功");
     }
 
     @GetMapping("reLogin")

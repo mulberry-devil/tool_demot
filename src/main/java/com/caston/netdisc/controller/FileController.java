@@ -2,6 +2,7 @@ package com.caston.netdisc.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.caston.common.result.Response;
 import com.caston.netdisc.entity.File;
 import com.caston.netdisc.exception.NetDiscException;
 import com.caston.netdisc.service.FileService;
@@ -43,7 +44,8 @@ public class FileController {
     private FileService fileService;
 
     @PostMapping("/upload")
-    public void upload(@RequestPart MultipartFile[] files) {
+    public Response upload(@RequestPart MultipartFile[] files) {
+        List<String> list = new ArrayList<>();
         for (MultipartFile file : files) {
             try {
                 log.info("开始上传{}到fastdfs...", file);
@@ -60,13 +62,21 @@ public class FileController {
                 }
                 log.info("{}上传成功，访问路径为：{}", filename, viewAccessUrl);
             } catch (Exception e) {
+                list.add(file.getOriginalFilename());
                 log.error("{}上传错误：", file, e);
             }
         }
+        if (list.size() == files.length) {
+            return Response.error().message("文件上传失败");
+        } else if (list.size() != 0) {
+            return Response.success(list).message("有文件上传失败");
+        }
+        return Response.success();
     }
 
     @DeleteMapping("/delete")
-    public void delete(@RequestParam String... fileNames) {
+    public Response delete(@RequestParam String... fileNames) {
+        List<String> list = new ArrayList<>();
         for (String fileName : fileNames) {
             try {
                 log.info("开始删除{}", fileName);
@@ -83,10 +93,18 @@ public class FileController {
                 log.error("{}删除失败", fileName, e);
             }
         }
+        if (list.size() == fileNames.length) {
+            return Response.error().message("文件删除失败");
+        } else if (list.size() != 0) {
+            StringBuilder builder = new StringBuilder();
+            list.forEach(i -> builder.append(i + ";"));
+            return Response.success(list).message("有文件删除失败");
+        }
+        return Response.success();
     }
 
     @GetMapping("/downloadBatch")
-    public void downloadBatch(HttpServletResponse response, String... fileNames) {
+    public Response downloadBatch(HttpServletResponse response, String... fileNames) {
         List<File> list = new ArrayList<>();
         for (String fileName : fileNames) {
             File file = fileService.getOne(new LambdaQueryWrapper<File>().eq(File::getFilename, fileName));
@@ -111,8 +129,10 @@ public class FileController {
                 os.write(buffer);
             }
             log.info("下载完成");
+            return Response.success().message("批量下载成功");
         } catch (Exception e) {
             log.error("下载错误：", e);
+            return Response.error();
         } finally {
             try {
                 // 关闭资源
@@ -130,7 +150,7 @@ public class FileController {
     }
 
     @GetMapping("/download")
-    public void download(String fileName, HttpServletResponse response) {
+    public Response download(String fileName, HttpServletResponse response) {
         BufferedInputStream in = null;
         OutputStream os = null;
         try {
@@ -152,8 +172,10 @@ public class FileController {
                 os.write(buffer);
             }
             log.info("下载{}完成", fileName);
+            return Response.success().message("文件下载成功");
         } catch (Exception e) {
             log.error("{}下载错误：", fileName, e);
+            return Response.error().message("文件下载失败");
         } finally {
             try {
                 // 关闭资源

@@ -51,11 +51,11 @@ public class DemoInit {
         ALiOSSEnum.ACCESSKEYSECRET.setAliField(alioss.getAccesskeysecret());
         log.info("开始初始化热点数据......");
         try {
-            // hotSearchService.addHotSearchInit("weibo", "https://tenapi.cn/resou/");
-            // hotSearchService.addHotSearchInit("zhihu", "https://tenapi.cn/zhihuresou/");
-            // hotSearchService.addHotSearchInit("douyin", "https://tenapi.cn/douyinresou/");
-            // hotSearchService.addHotSearchInit("blibli", "https://tenapi.cn/bilihot/");
-            // hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
+            hotSearchService.addHotSearchInit("weibo", "https://tenapi.cn/resou/");
+            hotSearchService.addHotSearchInit("zhihu", "https://tenapi.cn/zhihuresou/");
+            hotSearchService.addHotSearchInit("douyin", "https://tenapi.cn/douyinresou/");
+            hotSearchService.addHotSearchInit("blibli", "https://tenapi.cn/bilihot/");
+            hotSearchService.addHotSearchInit("baidu", "https://tenapi.cn/baiduhot/");
             log.info("热点数据初始化结束......");
         } catch (Exception e) {
             log.error("初始化数据发生异常：", e);
@@ -65,7 +65,7 @@ public class DemoInit {
             Wechat wechat = wechatService.getOne(new LambdaQueryWrapper<Wechat>().eq(Wechat::getStatus, 1).eq(Wechat::getType, "wechat"));
             WeChatEnum.APPID.setAliField(wechat.getAppid());
             WeChatEnum.APPSECRET.setAliField(wechat.getAppsecret());
-            TEMPLATEMAP = wechatTemplateService.list().stream().collect(Collectors.toMap(WechatTemplate::getStatue, i -> i.getTemplateid()));
+            TEMPLATEMAP = wechatTemplateService.list().stream().collect(Collectors.toMap(WechatTemplate::getStatue, WechatTemplate::getTemplateid));
             Wechat wether = wechatService.getOne(new LambdaQueryWrapper<Wechat>().eq(Wechat::getStatus, 1).eq(Wechat::getType, "wether"));
             WeChatEnum.CITY_URL.setAliField(WeChatEnum.CITY_URL.getAliField().replace("MYKEY", wether.getAppsecret()));
             WeChatEnum.WEATHER_URL.setAliField(WeChatEnum.WEATHER_URL.getAliField().replace("MYKEY", wether.getAppsecret()));

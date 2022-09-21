@@ -2,6 +2,7 @@ package com.caston.send_mail.controller;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.caston.common.result.Response;
 import com.caston.send_mail.entity.MailVo;
 import com.caston.send_mail.entity.SendMail;
 import com.caston.send_mail.mq.produce.MailProduce;
@@ -39,7 +40,7 @@ public class SendMailController {
 
     @PostMapping("/sendMail")
     @RequiresPermissions(value = {"manager:all", "user:send"}, logical = Logical.OR)
-    public String sendMail(@RequestParam String to, @RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) List<MultipartFile> files) throws Exception {
+    public Response sendMail(@RequestParam String to, @RequestParam(required = false) String cc, @RequestParam String subject, @RequestParam String text, @RequestParam Boolean isHtml, @RequestPart(required = false) List<MultipartFile> files) throws Exception {
         /*
          * 邮件发送带附件配合队列--附件序列化思路
          *
@@ -61,14 +62,14 @@ public class SendMailController {
             list.add(list.size(), map);
         }
         String fileMapStr = JSONObject.toJSONString(list);
-        MailVo mailVo = new MailVo(to, cc, subject, text, isHtml, fileMapStr,null);
+        MailVo mailVo = new MailVo(to, cc, subject, text, isHtml, fileMapStr, null);
         mailProduce.sendQue(mailVo);
-        return "请求发送邮件成功";
+        return Response.success().message("请求发送邮件成功");
     }
 
     @PutMapping("/updateMail")
     @RequiresPermissions(value = {"manager:all", "user:update"}, logical = Logical.OR)
-    public String updateMail(@RequestParam String host, @RequestParam String username, @RequestParam String password, Integer port) {
+    public Response updateMail(@RequestParam String host, @RequestParam String username, @RequestParam String password, Integer port) {
         sendMailService.lambdaUpdate().eq(SendMail::getStatus, 1).set(SendMail::getStatus, 0).update();
         SendMail sendMail;
         sendMail = sendMailService.lambdaQuery()
@@ -88,7 +89,7 @@ public class SendMailController {
             sendMail.setStatus(1);
             sendMailService.updateMail(sendMail, mailSender);
         }
-        return "success";
+        return Response.success();
     }
 }
 
