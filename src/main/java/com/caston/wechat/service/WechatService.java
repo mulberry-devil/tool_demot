@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.caston.wechat.entity.WechatUser;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -26,5 +27,5 @@ public interface WechatService extends IService<Wechat> {
 
     public String wxSignatureCheck(String signature, String timestamp, String nonce, String echostr);
 
-    public void sendMessage2Wechat(HttpServletResponse response, RespMessage_Text responseText, String toUserName, String userId, StringBuilder builder);
+    public void sendMessage2Wechat(HttpServletResponse response, RespMessage_Text responseText, String toUserName, String userId) throws IOException;
 }

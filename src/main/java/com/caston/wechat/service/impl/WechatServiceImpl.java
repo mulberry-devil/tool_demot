@@ -29,7 +29,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -223,8 +226,8 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     }
 
     @Override
-    public void sendMessage2Wechat(HttpServletResponse response, RespMessage_Text responseText, String toUserName, String userId, StringBuilder builder) {
-        PrintWriter out = null;
+    public void sendMessage2Wechat(HttpServletResponse response, RespMessage_Text responseText, String toUserName, String userId) throws IOException {
+        OutputStream out = null;
         try {
             log.info("发送确认消息给公众号...");
             response.setCharacterEncoding("UTF-8");
@@ -235,12 +238,13 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
             //设置返回内容
             String resqXml = WeChatUtil.messageToXml(responseText);
             //响应消息
-            out = response.getWriter();
-            out.print(resqXml);
+            out = response.getOutputStream();
+            out.write(resqXml.getBytes());
         } catch (Exception e) {
             log.error("公众号消息处理出现异常：", e);
         } finally {
             if (out != null) {
+                out.flush();
                 out.close();
             }
         }

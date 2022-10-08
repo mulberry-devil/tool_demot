@@ -8,6 +8,11 @@ import com.caston.netdisc.exception.NetDiscException;
 import com.caston.netdisc.service.FileService;
 import com.caston.netdisc.utils.FastDFSUtil;
 import com.caston.send_mail.mq.handler.MailHandler;
+import com.caston.shiro.entity.Account;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresRoles;
+import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +40,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/file")
+@RequiresRoles(value = {"manager", "user"}, logical = Logical.OR)
 public class FileController {
     private static final Logger log = LoggerFactory.getLogger(FileController.class);
 
@@ -46,6 +52,7 @@ public class FileController {
     @PostMapping("/upload")
     public Response upload(@RequestPart MultipartFile[] files) {
         List<String> list = new ArrayList<>();
+        Account account = (Account) SecurityUtils.getSubject().getPrincipal();
         for (MultipartFile file : files) {
             try {
                 log.info("开始上传{}到fastdfs...", file);
@@ -58,7 +65,7 @@ public class FileController {
                     oldFile.setFileurl(viewAccessUrl);
                     fileService.updateById(oldFile);
                 } else {
-                    fileService.save(new File(filename, viewAccessUrl));
+                    fileService.save(new File(filename, viewAccessUrl, account.getUsername()));
                 }
                 log.info("{}上传成功，访问路径为：{}", filename, viewAccessUrl);
             } catch (Exception e) {
@@ -77,10 +84,11 @@ public class FileController {
     @DeleteMapping("/delete")
     public Response delete(@RequestParam String... fileNames) {
         List<String> list = new ArrayList<>();
+        Account account = (Account) SecurityUtils.getSubject().getPrincipal();
         for (String fileName : fileNames) {
             try {
                 log.info("开始删除{}", fileName);
-                LambdaQueryWrapper<File> queryWrapper = new LambdaQueryWrapper<File>().eq(File::getFilename, fileName);
+                LambdaQueryWrapper<File> queryWrapper = new LambdaQueryWrapper<File>().eq(File::getFilename, fileName).eq(File::getUploaduser, account.getUsername());
                 File file = fileService.getOne(queryWrapper);
                 if (file == null) {
                     log.info("没有{}这个文件", fileName);
@@ -106,8 +114,9 @@ public class FileController {
     @GetMapping("/downloadBatch")
     public Response downloadBatch(HttpServletResponse response, String... fileNames) {
         List<File> list = new ArrayList<>();
+        Account account = (Account) SecurityUtils.getSubject().getPrincipal();
         for (String fileName : fileNames) {
-            File file = fileService.getOne(new LambdaQueryWrapper<File>().eq(File::getFilename, fileName));
+            File file = fileService.getOne(new LambdaQueryWrapper<File>().eq(File::getFilename, fileName).eq(File::getUploaduser, account.getUsername()));
             if (file == null) {
                 log.info("没有{}这个文件", fileName);
                 continue;
@@ -153,9 +162,10 @@ public class FileController {
     public Response download(String fileName, HttpServletResponse response) {
         BufferedInputStream in = null;
         OutputStream os = null;
+        Account account = (Account) SecurityUtils.getSubject().getPrincipal();
         try {
             log.info("开始下载{}", fileName);
-            File file = fileService.getOne(new LambdaQueryWrapper<File>().eq(File::getFilename, fileName));
+            File file = fileService.getOne(new LambdaQueryWrapper<File>().eq(File::getFilename, fileName).eq(File::getUploaduser, account.getUsername()));
             if (file == null) {
                 log.info("没有{}这个文件", fileName);
                 throw new NetDiscException("没有" + fileName + "该文件");
@@ -190,6 +200,13 @@ public class FileController {
                 e.printStackTrace();
             }
         }
+    }
+
+    @GetMapping("/getFile")
+    public Response getFile() {
+        Account account = (Account) SecurityUtils.getSubject().getPrincipal();
+        List<File> list = fileService.list(new LambdaQueryWrapper<File>().eq(File::getUploaduser, account.getUsername()));
+        return Response.success(list);
     }
 }
 

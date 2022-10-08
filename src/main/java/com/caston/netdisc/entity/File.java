@@ -30,5 +30,6 @@ public class File implements Serializable {
     @TableField("fileUrl")
     private String fileurl;
 
-
+    @TableField("uploadUser")
+    private String uploaduser;
 }

@@ -202,6 +202,6 @@ public class FastDFSUtil {
      * @return
      */
     public String getViewAccessUrl(String fileUrl) {
-        return "http://172.23.11.200:8888/" + fileUrl;
+        return "http://172.23.11.200:8889/" + fileUrl;
     }
 }

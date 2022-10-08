@@ -10,6 +10,8 @@ import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
 import com.caston.wechat.service.WechatUserService;
 import com.caston.wechat.utils.WeChatUtil;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/wechat")
+@RequiresRoles(value = {"manager"}, logical = Logical.OR)
 public class WechatController {
 
     private static final Logger log = LoggerFactory.getLogger(WechatController.class);
@@ -105,6 +108,7 @@ public class WechatController {
                 messageService.save(new WechatMessage(userId, content, createTime));
                 String[] split = content.split("：|:");
                 StringBuilder builder;
+                RespMessage_Text responseText = new RespMessage_Text();
                 if (split.length > 1 && "提醒".equals(split[0])) {
                     WechatNote wechatNote = wechatNoteService.getOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, userId));
                     builder = new StringBuilder(split[1]);
@@ -115,10 +119,10 @@ public class WechatController {
                     } else {
                         wechatNoteService.save(new WechatNote(userId, builder.toString(), new Date(), 1));
                     }
-                    RespMessage_Text responseText = new RespMessage_Text();
+
                     //设置返回内容
                     responseText.setContent("增加提醒成功,提醒内容为：" + builder);
-                    wechatService.sendMessage2Wechat(response, responseText, toUserName, userId, builder);
+                    wechatService.sendMessage2Wechat(response, responseText, toUserName, userId);
                 } else if (split.length > 1 && "追加提醒".equals(split[0])) {
                     WechatNote wechatNote = wechatNoteService.getOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, userId));
                     if (wechatNote != null) {
@@ -131,10 +135,9 @@ public class WechatController {
                         builder = new StringBuilder(split[1]);
                         wechatNoteService.save(new WechatNote(userId, builder.toString(), new Date(), 1));
                     }
-                    RespMessage_Text responseText = new RespMessage_Text();
                     //设置返回内容
                     responseText.setContent("追加提醒成功,提醒内容为：" + builder);
-                    wechatService.sendMessage2Wechat(response, responseText, toUserName, userId, builder);
+                    wechatService.sendMessage2Wechat(response, responseText, toUserName, userId);
                 }
             }
             log.info("公众号消息处理完成...");

@@ -18,14 +18,13 @@ import javax.annotation.Resource;
 
 @RestController
 @RequestMapping("/createMVC")
-@RequiresRoles(value = {"manager", "user"}, logical = Logical.OR)
+@RequiresRoles(value = {"manager"}, logical = Logical.OR)
 public class CreateMVCController {
 
     @Resource
     private SQLEntity sqlEntity;
 
     @PostMapping("/")
-    @RequiresPermissions(value = {"manager:all", "user:develop"}, logical = Logical.OR)
     public String create(@RequestParam(required = false) String ipPort,
                          @RequestParam(required = false) String DBName,
                          @RequestParam(required = false) String username,
