@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,7 +32,6 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/wechat")
-@RequiresRoles(value = {"manager"}, logical = Logical.OR)
 public class WechatController {
 
     private static final Logger log = LoggerFactory.getLogger(WechatController.class);
@@ -46,6 +46,7 @@ public class WechatController {
     private WechatMessageService messageService;
 
     @PostMapping("/send")
+    @RequiresRoles(value = {"manager"}, logical = Logical.OR)
     public Response send() {
         List<WechatUser> list = new ArrayList<>();
         wechatUserService.list().stream().forEach(i -> {
@@ -66,6 +67,7 @@ public class WechatController {
     }
 
     @PostMapping("/addNote")
+    @RequiresRoles(value = {"manager"}, logical = Logical.OR)
     public Response addNote(@RequestParam String userName, @RequestParam String note) {
         String userId = wechatUserService.getOne(new LambdaQueryWrapper<WechatUser>().eq(WechatUser::getUserName, userName)).getUserId();
         WechatNote wechatNote = wechatNoteService.getOne(new LambdaQueryWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, userId));
@@ -80,12 +82,14 @@ public class WechatController {
     }
 
     @PostMapping("/addUser")
+    @RequiresRoles(value = {"manager"}, logical = Logical.OR)
     public Response addUser(@RequestBody WechatUser wechatUser) {
         wechatUserService.save(wechatUser);
         return Response.success();
     }
 
     @GetMapping("messageHandle")
+    @ApiIgnore
     public String wxSignatureCheck(
             @RequestParam(value = "signature") String signature,
             @RequestParam(value = "timestamp") String timestamp,
@@ -95,7 +99,8 @@ public class WechatController {
     }
 
     @PostMapping("messageHandle")
-    public Response messageHandle(HttpServletRequest request, HttpServletResponse response) {
+    @ApiIgnore
+    public void messageHandle(HttpServletRequest request, HttpServletResponse response) {
         try {
             log.info("开始处理公众号接收到的消息...");
             Map<String, String> map = WeChatUtil.xml2MapFromStream(request.getInputStream());
@@ -141,10 +146,8 @@ public class WechatController {
                 }
             }
             log.info("公众号消息处理完成...");
-            return Response.success();
         } catch (Exception e) {
             log.error("公众号消息处理出现异常：", e);
-            return Response.error();
         }
     }
 }
