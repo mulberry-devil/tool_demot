@@ -4,42 +4,32 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.caston.init.DemoInit;
-import com.caston.wechat.controller.WechatController;
+import com.caston.send_mail.entity.MailVo;
+import com.caston.send_mail.mq.produce.MailProduce;
 import com.caston.wechat.entity.*;
 import com.caston.wechat.enums.WeChatEnum;
 import com.caston.wechat.exception.WeChatException;
 import com.caston.wechat.mapper.WechatMapper;
 import com.caston.wechat.mapper.WechatNoteMapper;
-import com.caston.wechat.mapper.WechatTemplateMapper;
 import com.caston.wechat.mapper.WechatTokenMapper;
-import com.caston.wechat.service.WechatNoteService;
 import com.caston.wechat.service.WechatService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.caston.wechat.utils.WeChatUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,6 +53,8 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
     private WechatNoteMapper wechatNoteMapper;
     @Autowired
     private WechatTokenMapper wechatTokenMapper;
+    @Autowired
+    private MailProduce mailProduce;
 
     @Override
     @Transactional
@@ -204,6 +196,7 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
             if (msg.size() > 2) {
                 sendMessage(sendBody, msg, url, 3, true);
                 wechatNoteMapper.update(null, new LambdaUpdateWrapper<WechatNote>().eq(WechatNote::getIsnew, 1).eq(WechatNote::getUserid, wechatUser.getUserId()).set(WechatNote::getIsnew, 0));
+                if (StringUtils.isNoneBlank(wechatUser.getMail())) sendMessageByMail(wechatUser, msg);
             } else {
                 sendMessage(sendBody, msg, url, 4, false);
             }
@@ -295,5 +288,11 @@ public class WechatServiceImpl extends ServiceImpl<WechatMapper, Wechat> impleme
         } catch (Exception e) {
             log.error("推送微信模板给用户失败：", e);
         }
+    }
+
+    private void sendMessageByMail(WechatUser wechatUser, Map<String, Object> msg) {
+        String note = ((Content) ((Map) msg.get("3")).get("note")).getValue();
+        MailVo mailVo = new MailVo(wechatUser.getMail(), null, "重要提醒", note, false, null, new Date());
+        mailProduce.sendQue(mailVo);
     }
 }

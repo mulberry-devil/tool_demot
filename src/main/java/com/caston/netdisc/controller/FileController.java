@@ -7,12 +7,10 @@ import com.caston.netdisc.entity.File;
 import com.caston.netdisc.exception.NetDiscException;
 import com.caston.netdisc.service.FileService;
 import com.caston.netdisc.utils.FastDFSUtil;
-import com.caston.send_mail.mq.handler.MailHandler;
 import com.caston.shiro.entity.Account;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresRoles;
-import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +25,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**

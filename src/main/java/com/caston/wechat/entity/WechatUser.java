@@ -29,4 +29,6 @@ public class WechatUser implements Serializable {
     private String region;
 
     private Date birthday;
+
+    private String mail;
 }

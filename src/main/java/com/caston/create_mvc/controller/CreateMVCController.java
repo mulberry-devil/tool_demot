@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.caston.create_mvc.entity.SQLEntity;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.annotation.Logical;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.web.bind.annotation.*;
 

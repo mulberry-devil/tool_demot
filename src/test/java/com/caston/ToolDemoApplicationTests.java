@@ -121,7 +121,7 @@ class ToolDemoApplicationTests {
 
     @Test
     void test2() {
-        String password = "123123";
+        String password = "246246";
         Md5Hash md5Hash = new Md5Hash(password);
         System.out.println(md5Hash.toHex());
         // 使用加盐后的加密数据
