@@ -14,6 +14,7 @@ public class Test {
 
     public void test() throws JobExecutionException {
         logger.info("定时任务test()：" + new Date());
+        System.out.println("11111111111111111111");
     }
 
     public void testOne() throws JobExecutionException {

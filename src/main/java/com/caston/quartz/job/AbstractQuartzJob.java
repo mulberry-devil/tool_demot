@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractQuartzJob implements Job {
     private static final Logger log = LoggerFactory.getLogger(AbstractQuartzJob.class);
@@ -19,16 +20,17 @@ public abstract class AbstractQuartzJob implements Job {
     /**
      * 线程本地变量
      */
-    private static ThreadLocal<Date> threadLocal = new ThreadLocal<>();
+    private static ConcurrentHashMap map = new ConcurrentHashMap<String,Date>();
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        Task task = (Task)context.getMergedJobDataMap().get(TaskConstants.TASK_PROPERTIES);
+        Task task = (Task) context.getMergedJobDataMap().get(TaskConstants.TASK_PROPERTIES);
         try {
             before(context, task);
             doExecute(context, task);
             after(context, task, null);
         } catch (Exception ex) {
+            ex.printStackTrace();
             log.error("定时任务执行异常：{}", ex.getMessage());
             after(context, task, ex);
         }
@@ -38,15 +40,14 @@ public abstract class AbstractQuartzJob implements Job {
      * 执行前
      *
      * @param context 工作执行上下文对象
-     * @param task 任务
+     * @param task    任务
      */
     protected void before(JobExecutionContext context, Task task) {
-        threadLocal.set(new Date());
+        map.put(task.getId(),new Date());
     }
 
     protected void after(JobExecutionContext context, Task task, Exception ex) {
-        Date startTime = threadLocal.get();
-        threadLocal.remove();
+        Date startTime = (Date) map.get(task.getId());
 
         TaskLog taskLog = new TaskLog();
         taskLog.setJobId(task.getId());
@@ -70,8 +71,8 @@ public abstract class AbstractQuartzJob implements Job {
      * 执行方法
      *
      * @param context 工作执行上下文对象
-     * @param task 系统计划任务
+     * @param task    系统计划任务
      * @throws Exception 执行过程中的异常
      */
-    protected abstract void  doExecute(JobExecutionContext context, Task task) throws Exception;
+    protected abstract void doExecute(JobExecutionContext context, Task task) throws Exception;
 }

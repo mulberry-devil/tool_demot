@@ -1,8 +1,8 @@
 package com.caston.quartz.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.time.LocalDateTime;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -26,7 +26,7 @@ public class Task implements Serializable {
     /**
      * 主键
      */
-      @TableId(value = "id", type = IdType.AUTO)
+      @TableId(value = "id")
     private Long id;
 
     /**
@@ -72,6 +72,7 @@ public class Task implements Serializable {
     /**
      * 创建时间
      */
+    @TableField(fill = FieldFill.INSERT)
     private Date createdTime;
 
     /**
@@ -82,6 +83,7 @@ public class Task implements Serializable {
     /**
      * 修改时间
      */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updatedTime;
 
 

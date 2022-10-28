@@ -3,10 +3,11 @@ package com.caston.quartz.utils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class BeansUtils implements BeanFactoryPostProcessor {
     private static ConfigurableListableBeanFactory beanFactory;
-
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {

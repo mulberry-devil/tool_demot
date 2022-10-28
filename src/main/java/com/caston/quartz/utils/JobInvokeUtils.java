@@ -16,8 +16,12 @@ public class JobInvokeUtils {
         }
     }
 
-    public static void invokeMethod(Object bean, String methodName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method method = bean.getClass().getDeclaredMethod(methodName);
-        method.invoke(bean);
+    public static void invokeMethod(Object bean, String methodName)  {
+        try {
+            Method method = bean.getClass().getDeclaredMethod(methodName);
+            method.invoke(bean);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
