@@ -5,6 +5,8 @@ import cn.hutool.core.date.DateUtil;
 import com.caston.quartz.entity.Task;
 import com.caston.quartz.service.TaskService;
 import com.caston.quartz.utils.SnowflakeIdWorkerUtil;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.quartz.*;
 import org.quartz.impl.JobDetailImpl;
 import org.quartz.impl.matchers.GroupMatcher;
@@ -28,18 +30,18 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/task")
+@RequiresRoles(value = {"manager"}, logical = Logical.OR)
 public class TaskController {
     @Autowired
     private TaskService taskService;
+    @Autowired
+    private SchedulerFactoryBean schedulerFactoryBean;
 
     @GetMapping("addTask")
     public void addTask(Task task) {
         task.setId(SnowflakeIdWorkerUtil.generateId());
         taskService.saveTask(task);
     }
-
-    @Autowired
-    private SchedulerFactoryBean schedulerFactoryBean;
 
     /**
      * 获取所有定时任务

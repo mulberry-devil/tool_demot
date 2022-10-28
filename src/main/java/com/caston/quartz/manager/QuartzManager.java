@@ -2,7 +2,7 @@ package com.caston.quartz.manager;
 
 import com.caston.quartz.TaskConstants;
 import com.caston.quartz.entity.Task;
-import com.caston.quartz.execution.QuartzJobExecution;
+import com.caston.quartz.job.QuartzJobExecution;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 

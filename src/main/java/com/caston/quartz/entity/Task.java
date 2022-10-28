@@ -67,7 +67,7 @@ public class Task implements Serializable {
     /**
      * 创建者
      */
-    private Long createdBy;
+    private String createdBy;
 
     /**
      * 创建时间

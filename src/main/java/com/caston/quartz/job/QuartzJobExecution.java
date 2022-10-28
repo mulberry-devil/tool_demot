@@ -1,4 +1,4 @@
-package com.caston.quartz.execution;
+package com.caston.quartz.job;
 
 import com.caston.quartz.entity.Task;
 import com.caston.quartz.job.AbstractQuartzJob;
