@@ -151,15 +151,14 @@ public class WechatController {
                     responseText.setContent("追加提醒成功,提醒内容为：" + builder);
                     wechatService.sendMessage2Wechat(response, responseText, toUserName, userId);
                 } else if (split.length > 1 && "定时提醒".equals(split[0])) {
-                    int j = split[1].indexOf("(");
-                    int k = split[1].indexOf(")");
-                    String time = split[1].substring(0, j);
-                    String task_content = split[1].substring(j + 1, k);
+                    int j = split[2].indexOf("(");
+                    int k = split[2].indexOf(")");
+                    String time = split[2].substring(0, j);
+                    String task_content = split[2].substring(j + 1, k);
                     Calendar cal = Calendar.getInstance();
                     cal.setTime(new Date());
-                    String[] time_split = time.split(":|：");
-                    cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time_split[0]));
-                    cal.set(Calendar.MINUTE, Integer.parseInt(time_split[1]));
+                    cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(split[1]));
+                    cal.set(Calendar.MINUTE, Integer.parseInt(time));
                     String dateFormat = "ss mm HH dd MM ? yyyy";
                     SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
                     String cron = sdf.format(cal.getTime());
