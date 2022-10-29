@@ -4,12 +4,16 @@ import com.caston.quartz.TaskConstants;
 import com.caston.quartz.entity.Task;
 import com.caston.quartz.job.QuartzJobExecution;
 import org.quartz.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 @Service
 public class QuartzManager {
+    private static final Logger log = LoggerFactory.getLogger(QuartzManager.class);
+
     @Resource
     private Scheduler scheduler;
 
@@ -55,7 +59,7 @@ public class QuartzManager {
                 pauseJob(task);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.error("(QuartzManager.run)定时任务执行异常：{}", ex.getMessage());
         }
     }
 

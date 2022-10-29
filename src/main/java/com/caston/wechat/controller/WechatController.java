@@ -159,6 +159,7 @@ public class WechatController {
                     cal.setTime(new Date());
                     cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(split[1]));
                     cal.set(Calendar.MINUTE, Integer.parseInt(time));
+                    cal.set(Calendar.SECOND, 0);
                     String dateFormat = "ss mm HH dd MM ? yyyy";
                     SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
                     String cron = sdf.format(cal.getTime());

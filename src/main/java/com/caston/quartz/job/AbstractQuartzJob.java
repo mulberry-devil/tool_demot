@@ -32,8 +32,7 @@ public abstract class AbstractQuartzJob implements Job {
             doExecute(context, task);
             after(task, null);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            log.error("定时任务执行异常：{}", ex.getMessage());
+            log.error("(AbstractQuartzJob.execute)定时任务执行异常：{}", ex.getMessage());
             after(task, ex);
         }
     }
@@ -68,7 +67,7 @@ public abstract class AbstractQuartzJob implements Job {
             BeansUtils.getBean(QuartzManager.class).deleteJob(task);
             BeansUtils.getBean(TaskService.class).deleteById(task.getId());
         } catch (SchedulerException e) {
-            e.printStackTrace();
+            log.error("(AbstractQuartzJob.after)定时任务执行异常：{}", e.getMessage());
         }
     }
 
