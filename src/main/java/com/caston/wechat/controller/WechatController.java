@@ -4,6 +4,10 @@ package com.caston.wechat.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.caston.common.result.Response;
+import com.caston.quartz.TaskConstants;
+import com.caston.quartz.entity.Task;
+import com.caston.quartz.service.TaskService;
+import com.caston.quartz.utils.SnowflakeIdWorkerUtil;
 import com.caston.wechat.entity.*;
 import com.caston.wechat.service.WechatMessageService;
 import com.caston.wechat.service.WechatNoteService;
@@ -20,6 +24,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -44,6 +49,8 @@ public class WechatController {
     private WechatNoteService wechatNoteService;
     @Autowired
     private WechatMessageService messageService;
+    @Autowired
+    private TaskService taskService;
 
     @PostMapping("/send")
     @RequiresRoles(value = {"manager"}, logical = Logical.OR)
@@ -142,6 +149,23 @@ public class WechatController {
                     }
                     //设置返回内容
                     responseText.setContent("追加提醒成功,提醒内容为：" + builder);
+                    wechatService.sendMessage2Wechat(response, responseText, toUserName, userId);
+                } else if (split.length > 1 && "定时提醒".equals(split[0])) {
+                    int j = split[1].indexOf("(");
+                    int k = split[1].indexOf(")");
+                    String time = split[1].substring(0, j);
+                    String task_content = split[1].substring(j + 1, k);
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(new Date());
+                    String[] time_split = time.split(":|：");
+                    cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time_split[0]));
+                    cal.set(Calendar.MINUTE, Integer.parseInt(time_split[1]));
+                    String dateFormat = "ss mm HH dd MM ? yyyy";
+                    SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+                    String cron = sdf.format(cal.getTime());
+                    Task task = new Task(SnowflakeIdWorkerUtil.generateId(), TaskConstants.JOB, TaskConstants.JOB + userId, "定时任务提醒", cron, 0, TaskConstants.BEAN_CLASS, task_content, false, userId);
+                    taskService.saveTask(task);
+                    responseText.setContent("添加定时提醒成功");
                     wechatService.sendMessage2Wechat(response, responseText, toUserName, userId);
                 }
             }

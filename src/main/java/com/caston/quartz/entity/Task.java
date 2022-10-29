@@ -3,11 +3,14 @@ package com.caston.quartz.entity;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -19,6 +22,8 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+@AllArgsConstructor
 public class Task implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -26,7 +31,7 @@ public class Task implements Serializable {
     /**
      * 主键
      */
-      @TableId(value = "id")
+    @TableId(value = "id")
     private Long id;
 
     /**
@@ -59,6 +64,8 @@ public class Task implements Serializable {
      */
     private String beanClass;
 
+    private String content;
+
     /**
      * 是否已删除
      */
@@ -86,5 +93,16 @@ public class Task implements Serializable {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updatedTime;
 
-
+    public Task(Long id, String jobGroup, String jobName, String remaks, String cron, Integer status, String beanClass, String content, Boolean isDeleted, String createdBy) {
+        this.id = id;
+        this.jobGroup = jobGroup;
+        this.jobName = jobName;
+        this.remaks = remaks;
+        this.cron = cron;
+        this.status = status;
+        this.beanClass = beanClass;
+        this.content = content;
+        this.isDeleted = isDeleted;
+        this.createdBy = createdBy;
+    }
 }

@@ -1,7 +1,6 @@
 package com.caston.quartz.job;
 
 import com.caston.quartz.entity.Task;
-import com.caston.quartz.job.AbstractQuartzJob;
 import com.caston.quartz.utils.JobInvokeUtils;
 import org.quartz.JobExecutionContext;
 

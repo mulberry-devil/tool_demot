@@ -16,10 +16,9 @@ public class QuartzManager {
     /**
      * 得到quartz任务类
      *
-     * @param task 执行计划
      * @return 具体执行任务类
      */
-    private static Class<? extends Job> getQuartzJobClass(Task task) {
+    private static Class<? extends Job> getQuartzJobClass() {
         return QuartzJobExecution.class;
     }
 
@@ -35,7 +34,7 @@ public class QuartzManager {
         try {
             // 创建jobDetail实例， 绑定Job实现类
             // 指明job的名称，所在组的名称，以及绑定Job类
-            Class<? extends Job> jobClass = getQuartzJobClass(task);
+            Class<? extends Job> jobClass = getQuartzJobClass();
 //            Class<? extends Job> jobClass = (Class<? extends Job>) (Class.forName(task.getBeanClass())).newInstance().getClass();
             // 配置任务名称和组构成任务key
             JobDetail jobDetail = JobBuilder.newJob(jobClass).withIdentity(getJobKey(task.getId(), task.getJobGroup())).build();
