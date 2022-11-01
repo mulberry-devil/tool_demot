@@ -18,7 +18,7 @@ public class WeChatRemindJob {
 
     public void remind(String userId, String content) {
         //TODO 微信提醒
-        log.info("开始对{}进行邮箱提醒...");
+        log.info("开始对{}进行邮箱提醒...", userId);
         WechatUser user = BeansUtils.getBean(WechatUserService.class).getOne(new LambdaQueryWrapper<WechatUser>().eq(WechatUser::getUserId, userId));
         MailVo mailVo = new MailVo(user.getMail(), null, "定时提醒", content, false, null, new Date());
         BeansUtils.getBean(MailProduce.class).sendQue(mailVo);
